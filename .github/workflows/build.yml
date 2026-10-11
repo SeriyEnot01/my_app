@@ -1,0 +1,153 @@
+name: Сборка приложений
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths-ignore: ['**.md']
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+env:
+  FLUTTER_VERSION: '3.24.5'
+
+jobs:
+  android:
+    name: Android (APK)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Создать платформенные папки
+        run: flutter create --platforms=android,windows --org ru.zadachnik --project-name zadachnik .
+
+      - name: Настроить Android-проект
+        run: python3 tool/patch_platforms.py android
+
+      - name: Зависимости
+        run: flutter pub get
+
+      - name: Иконки
+        run: dart run flutter_launcher_icons
+
+      - name: Тесты
+        run: flutter test
+
+      - name: Ключ подписи
+        env:
+          KS_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          if [ -n "$KS_BASE64" ]; then
+            echo "$KS_BASE64" | base64 -d > android/app/upload.jks
+            printf "storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=upload.jks\n" "$KS_PASSWORD" "$KS_PASSWORD" "${KS_ALIAS:-zadachnik}" > android/key.properties
+            echo "Сборка будет подписана вашим ключом."
+          else
+            echo "::warning::Секрет ANDROID_KEYSTORE_BASE64 не задан: APK подписан временным ключом, обновление поверх такой версии не установится."
+          fi
+
+      - name: Сборка APK
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ]; then echo "::warning::Секрет SUPABASE_URL не задан: приложение будет работать без синхронизации."; fi
+          flutter build apk --release --build-number=${{ github.run_number }} \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          cp build/app/outputs/flutter-apk/app-release.apk Zadachnik-android.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Zadachnik-android
+          path: Zadachnik-android.apk
+
+      - name: Приложить к релизу
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" Zadachnik-android.apk --clobber
+
+  windows:
+    name: Windows (установщик)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Создать платформенные папки
+        shell: bash
+        run: flutter create --platforms=android,windows --org ru.zadachnik --project-name zadachnik .
+
+      - name: Настроить Windows-проект
+        shell: bash
+        run: python tool/patch_platforms.py windows
+
+      - name: Зависимости
+        run: flutter pub get
+
+      - name: Иконки
+        run: dart run flutter_launcher_icons
+
+      - name: Сборка
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          flutter build windows --release --build-number=${{ github.run_number }} \
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+
+      - name: Библиотеки Visual C++ рядом с программой
+        shell: pwsh
+        run: |
+          $out = "build\windows\x64\runner\Release"
+          foreach ($dll in "msvcp140.dll","vcruntime140.dll","vcruntime140_1.dll") {
+            Copy-Item "C:\Windows\System32\$dll" $out -ErrorAction SilentlyContinue
+          }
+          Compress-Archive -Path "$out\*" -DestinationPath Zadachnik-windows-portable.zip -Force
+
+      - name: Установщик
+        shell: pwsh
+        run: |
+          choco install innosetup -y --no-progress | Out-Null
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { $iscc = "$env:ProgramFiles\Inno Setup 6\ISCC.exe" }
+          & $iscc "/DAppVersion=1.0.${{ github.run_number }}" installer\zadachnik.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item dist\Zadachnik-Setup.exe .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Zadachnik-windows
+          path: |
+            Zadachnik-Setup.exe
+            Zadachnik-windows-portable.zip
+
+      - name: Приложить к релизу
+        if: github.event_name == 'release'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" Zadachnik-Setup.exe Zadachnik-windows-portable.zip --clobber
