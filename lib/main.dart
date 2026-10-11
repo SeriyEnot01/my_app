@@ -13,16 +13,28 @@ import 'screens/home_screen.dart';
 
 // Passed at build time: --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
 // (GitHub Actions takes them from the repository secrets). Empty = works offline, no account.
-const _supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-const _supabaseKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+const _rawUrl = String.fromEnvironment('SUPABASE_URL');
+const _rawKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+
+/// Secrets are often pasted straight from config.js: strip quotes, commas, spaces and a trailing slash.
+String _clean(String v) {
+  var s = v.trim();
+  s = s.replaceAll(RegExp('^[\\s"\'`]+|[\\s"\'`,;]+\$'), '');
+  s = s.replaceAll(RegExp(r'/+$'), '');
+  // a project URL copied with an API path: keep only https://xxxx.supabase.co
+  s = s.replaceAll(RegExp(r'/(rest|auth)/v1.*$'), '');
+  return s;
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   var configured = false;
-  if (_supabaseUrl.isNotEmpty && _supabaseKey.isNotEmpty) {
+  final supabaseUrl = _clean(_rawUrl);
+  final supabaseKey = _clean(_rawKey);
+  if (supabaseUrl.isNotEmpty && supabaseKey.isNotEmpty) {
     try {
-      await Supabase.initialize(url: _supabaseUrl, anonKey: _supabaseKey);
+      await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
       configured = true;
     } catch (e) {
       debugPrint('Supabase init failed: $e');
