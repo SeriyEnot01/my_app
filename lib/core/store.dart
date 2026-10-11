@@ -230,17 +230,24 @@ class AppStore extends ChangeNotifier {
       await _startUser(user.id, user.email ?? mail.trim(), keys.encKey);
     } on AuthException catch (e) {
       final m = e.message.toLowerCase();
+      if (m.contains('api key') || m.contains('apikey') || m.contains('jwt') || e.statusCode == '401') {
+        throw AuthFailure(_badKeyMessage(e.message));
+      }
       if (m.contains('confirm')) throw AuthFailure('Почта ещё не подтверждена. Откройте письмо от Supabase и перейдите по ссылке.');
-      if (m.contains('invalid')) {
+      if (m.contains('invalid login') || m.contains('invalid credentials')) {
         throw AuthFailure('Неверная почта или пароль. Проверьте раскладку, заглавные буквы и пробелы.');
       }
-      throw AuthFailure(e.message);
+      throw AuthFailure('Сервер ответил: ${e.message}');
     } catch (e) {
       if (e is AuthFailure) rethrow;
       if (_isNetwork(e)) throw AuthFailure('Нет связи с сервером. Проверьте интернет.');
       throw AuthFailure('Не получилось войти: $e');
     }
   }
+
+  String _badKeyMessage(String raw) =>
+      'Сервер не принял ключ приложения ($raw). Проверьте секреты SUPABASE_URL и SUPABASE_ANON_KEY в GitHub: '
+      'без кавычек и запятых, ключ anon от того же проекта, что и адрес. Затем пересоберите приложение.';
 
   /// Returns true when signed in right away, false when the email must be confirmed first.
   Future<bool> signUp(String mail, String password) async {
@@ -256,8 +263,9 @@ class AppStore extends ChangeNotifier {
       return false;
     } on AuthException catch (e) {
       final m = e.message.toLowerCase();
+      if (m.contains('api key') || m.contains('apikey') || e.statusCode == '401') throw AuthFailure(_badKeyMessage(e.message));
       if (m.contains('registered') || m.contains('exists')) throw AuthFailure('Такой аккаунт уже есть. Войдите.');
-      throw AuthFailure(e.message);
+      throw AuthFailure('Сервер ответил: ${e.message}');
     } catch (e) {
       if (e is AuthFailure) rethrow;
       if (_isNetwork(e)) throw AuthFailure('Нет связи с сервером. Проверьте интернет.');
