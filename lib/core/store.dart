@@ -73,6 +73,25 @@ class AppStore extends ChangeNotifier {
       return d != 0 ? d : ((b['created'] ?? 0) as num).compareTo((a['created'] ?? 0) as num);
     });
 
+  static num _n(Item m, String k) => (m[k] ?? 0) as num;
+
+  /// Notes: pinned first, then newest first.
+  List<Item> get notes => _ofKind('note')
+    ..sort((a, b) {
+      final p = (b['pinned'] == true ? 1 : 0) - (a['pinned'] == true ? 1 : 0);
+      return p != 0 ? p : _n(b, 'created').compareTo(_n(a, 'created'));
+    });
+
+  /// Morning routine steps in the user's order.
+  List<Item> get routineSteps => _ofKind('routine_item')
+    ..sort((a, b) {
+      final o = _n(a, 'order').compareTo(_n(b, 'order'));
+      return o != 0 ? o : _n(a, 'created').compareTo(_n(b, 'created'));
+    });
+
+  /// One record per day: {id: 'routine-YYYY-MM-DD', kind: 'routine_day', date, done: [stepIds], complete}.
+  Item? routineDay(String date) => items['routine-$date'];
+
   String planName(Item log) {
     final p = items[str(log, 'planId')];
     if (p != null && p['kind'] == 'plan') return str(p, 'name');

@@ -11,6 +11,8 @@ import '../core/scope.dart';
 import '../core/theme.dart';
 import '../widgets/common.dart';
 
+const _kinds = ['task', 'plan', 'log', 'note', 'routine_item', 'routine_day'];
+
 /// Same file format as the web version: {app, version, exported, items: [...]}.
 class BackupModule extends StatefulWidget {
   const BackupModule({super.key});
@@ -75,7 +77,7 @@ class _BackupModuleState extends State<BackupModule> {
         if (raw is! Map) continue;
         final item = Map<String, dynamic>.from(raw);
         final id = item['id'];
-        if (id is! String || !validId.hasMatch(id) || !['task', 'plan', 'log'].contains(item['kind'])) continue;
+        if (id is! String || !validId.hasMatch(id) || !_kinds.contains(item['kind'])) continue;
         final cur = store.items[id];
         if (cur != null && jsonEncode(cur) == jsonEncode(item)) continue;
         if (cur == null) {

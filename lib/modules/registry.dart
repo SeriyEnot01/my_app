@@ -8,7 +8,9 @@ import 'all_tasks.dart';
 import 'backup.dart';
 import 'calendar.dart';
 import 'mascot.dart';
+import 'notes.dart';
 import 'reminders.dart';
+import 'routine.dart';
 import 'stats.dart';
 import 'today.dart';
 import 'upcoming.dart';
@@ -98,6 +100,20 @@ final List<AppModule> allModules = [
     description: 'План тренировок и журнал по датам',
     icon: Icons.fitness_center,
     builder: () => const WorkoutsModule(),
+  ),
+  AppModule(
+    id: 'routine',
+    title: 'Утренняя рутина',
+    description: 'Список дел на каждое утро: отмечайте шаги, серия дней подряд',
+    icon: Icons.wb_twilight,
+    builder: () => const RoutineModule(),
+  ),
+  AppModule(
+    id: 'notes',
+    title: 'Заметки',
+    description: 'Быстрые заметки без даты, как «Избранное» в Telegram',
+    icon: Icons.sticky_note_2_outlined,
+    builder: () => const NotesModule(),
   ),
   AppModule(
     id: 'mascot',
