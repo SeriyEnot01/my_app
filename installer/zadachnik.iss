@@ -40,3 +40,5 @@ Name: "{autodesktop}\Задачник"; Filename: "{app}\zadachnik.exe"; Tasks: 
 
 [Run]
 Filename: "{app}\zadachnik.exe"; Description: "{cm:LaunchProgram,Задачник}"; Flags: nowait postinstall skipifsilent
+; after an in-app update (silent install) start the app again
+Filename: "{app}\zadachnik.exe"; Flags: nowait; Check: WizardSilent

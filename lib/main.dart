@@ -8,6 +8,7 @@ import 'core/notifications.dart';
 import 'core/scope.dart';
 import 'core/store.dart';
 import 'core/theme.dart';
+import 'core/updater.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_screen.dart';
 
@@ -47,6 +48,8 @@ Future<void> main() async {
   runApp(ZadachnikApp(store: store, layout: layout, reminders: reminders));
   await store.boot();
   await reminders.apply(force: true);
+  // quiet check: shows a banner on the main screen when GitHub has a newer build
+  await Updater.instance.check(quiet: true);
 }
 
 class ZadachnikApp extends StatelessWidget {

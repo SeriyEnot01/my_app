@@ -4,8 +4,10 @@ import '../core/dates.dart';
 import '../core/scope.dart';
 import '../core/store.dart';
 import '../core/theme.dart';
+import '../core/updater.dart';
 import '../widgets/common.dart';
 import 'layout_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -60,20 +62,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     });
   }
 
-  Future<void> _logout() async {
-    final store = StoreScope.read(context);
-    final ok = await store.signOut();
-    if (ok || !mounted) return;
-    final force = await confirmDialog(
-      context,
-      'Выйти без отправки?',
-      body: 'Не отправлено изменений: ${store.dirty.length}. Нет связи с сервером. Если выйти сейчас, эти изменения удалятся с этого устройства.',
-      action: 'Выйти',
-    );
-    if (force) await store.signOut(force: true);
-  }
-
   void _openLayout() => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const LayoutScreen()));
+
+  void _openSettings() => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen()));
 
   @override
   Widget build(BuildContext context) {
@@ -98,23 +89,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         actions: [
           _SyncBadge(store: store, showText: wide),
-          IconButton(
-            icon: const Icon(Icons.dashboard_customize_outlined),
-            tooltip: 'Блоки на экране',
-            onPressed: _openLayout,
-          ),
-          if (store.configured)
-            PopupMenuButton<String>(
-              tooltip: 'Аккаунт',
-              onSelected: (v) {
-                if (v == 'sync') store.syncNow();
-                if (v == 'logout') _logout();
-              },
-              itemBuilder: (_) => [
-                const PopupMenuItem(value: 'sync', child: Text('Синхронизировать сейчас')),
-                PopupMenuItem(value: 'logout', child: Text('Выйти${store.email.isEmpty ? '' : ' (${store.email})'}')),
-              ],
+          ListenableBuilder(
+            listenable: Updater.instance,
+            builder: (context, _) => IconButton(
+              icon: Badge(
+                isLabelVisible: Updater.instance.hasUpdate,
+                smallSize: 8,
+                backgroundColor: C.workout,
+                child: const Icon(Icons.settings_outlined),
+              ),
+              tooltip: 'Настройки',
+              onPressed: _openSettings,
             ),
+          ),
           const SizedBox(width: 4),
         ],
       ),
@@ -129,6 +116,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  ListenableBuilder(
+                    listenable: Updater.instance,
+                    builder: (context, _) => Updater.instance.hasUpdate
+                        ? Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Material(
+                              color: Color.alphaBlend(C.workout.withOpacity(.12), C.surface),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                side: BorderSide(color: C.workout.withOpacity(.45)),
+                              ),
+                              child: ListTile(
+                                leading: const Icon(Icons.system_update_alt, color: C.workout),
+                                title: Text('Доступна новая версия: сборка ${Updater.instance.latest!.build}'),
+                                subtitle: const Text('Нажмите, чтобы обновить', style: TextStyle(color: C.muted)),
+                                onTap: _openSettings,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
                   for (final m in modules)
                     Padding(
                       key: _keys.putIfAbsent(m.id, () => GlobalKey()),

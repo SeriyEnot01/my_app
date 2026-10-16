@@ -58,7 +58,58 @@ def android():
         )
         m = must_sub(r"(\s*</application>)", "\n" + receivers.rstrip("\n") + r"\1", m, "notification receivers")
     m = must_sub(r'android:label="[^"]*"', 'android:label="Задачник"', m, "app label")
+    # Never copy app data (decrypted cache, sign-in token) to Google Drive backups or device transfers.
+    if "allowBackup" not in m:
+        m = must_sub(
+            r"<application\b",
+            '<application\n        android:allowBackup="false"\n        android:fullBackupContent="false"\n'
+            '        android:dataExtractionRules="@xml/data_extraction_rules"',
+            m,
+            "disable backups",
+        )
+    if "REQUEST_INSTALL_PACKAGES" not in m:
+        m = must_sub(
+            r"(\n\s*<application)",
+            '\n    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>' + r"\1",
+            m,
+            "install permission",
+        )
+    if "UpdateFileProvider" not in m:
+        provider = (
+            '        <provider\n'
+            '            android:name=".UpdateFileProvider"\n'
+            '            android:authorities="${applicationId}.updates"\n'
+            '            android:exported="false"\n'
+            '            android:grantUriPermissions="true">\n'
+            '            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/update_paths" />\n'
+            '        </provider>\n'
+        )
+        m = must_sub(r"(\s*</application>)", lambda mo: "\n" + provider.rstrip("\n") + mo.group(1), m, "update file provider")
     write(manifest, m)
+
+    # in-app updates: MainActivity with an install channel + FileProvider for the downloaded APK
+    activities = list((a / "app/src/main/kotlin").rglob("MainActivity.kt"))
+    if len(activities) != 1:
+        sys.exit("patch_platforms: expected one MainActivity.kt, found %d" % len(activities))
+    act = activities[0]
+    pkg = re.search(r"^package\s+([\w.]+)", read(act), re.M).group(1)
+    for name in ["MainActivity.kt", "UpdateFileProvider.kt"]:
+        write(act.parent / name, read(ROOT / "tool/android" / name).replace("__PACKAGE__", pkg))
+    xml_dir = a / "app/src/main/res/xml"
+    xml_dir.mkdir(parents=True, exist_ok=True)
+    domains = "".join(f'        <exclude domain="{d}" path="." />\n' for d in ["root", "file", "database", "sharedpref", "external"])
+    write(
+        xml_dir / "data_extraction_rules.xml",
+        '<?xml version="1.0" encoding="utf-8"?>\n<data-extraction-rules>\n'
+        f'    <cloud-backup>\n{domains}    </cloud-backup>\n'
+        f'    <device-transfer>\n{domains}    </device-transfer>\n'
+        '</data-extraction-rules>\n',
+    )
+    write(
+        xml_dir / "update_paths.xml",
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        '<paths>\n    <cache-path name="updates" path="updates/" />\n</paths>\n',
+    )
 
     gradle = a / "app/build.gradle"
     if not gradle.exists():
@@ -100,7 +151,7 @@ def android():
             g,
             "release signing",
         )
-        g = g.rstrip() + "\n\ndependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'\n}\n"
+        g = g.rstrip() + "\n\ndependencies {\n    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'\n    implementation 'androidx.core:core:1.12.0'\n}\n"
     write(gradle, g)
 
     settings = a / "settings.gradle"

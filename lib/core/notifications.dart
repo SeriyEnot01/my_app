@@ -31,6 +31,8 @@ class Reminders {
       importance: Importance.high,
       priority: Priority.high,
       icon: 'ic_stat_notify',
+      // task titles are hidden on a locked screen
+      visibility: NotificationVisibility.private,
     ),
   );
 
