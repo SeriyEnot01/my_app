@@ -69,7 +69,8 @@ jobs:
         run: |
           if [ -z "$SUPABASE_URL" ]; then echo "::warning::Секрет SUPABASE_URL не задан: приложение будет работать без синхронизации."; fi
           flutter build apk --release --build-number=${{ github.run_number }} \
-            --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            --dart-define=BUILD_NUMBER=${{ github.run_number }} --dart-define=UPDATE_REPO=${{ github.repository }}
           cp build/app/outputs/flutter-apk/app-release.apk Zadachnik-android.apk
 
       - uses: actions/upload-artifact@v4
@@ -117,7 +118,8 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           flutter build windows --release --build-number=${{ github.run_number }} \
-            --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            --dart-define=BUILD_NUMBER=${{ github.run_number }} --dart-define=UPDATE_REPO=${{ github.repository }}
 
       - name: Библиотеки Visual C++ рядом с программой
         shell: pwsh
@@ -151,3 +153,30 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ github.event.release.tag_name }}" Zadachnik-Setup.exe Zadachnik-windows-portable.zip --clobber
+
+  publish:
+    name: Опубликовать обновление
+    needs: [android, windows]
+    if: github.event_name != 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+
+      - name: Релиз для обновления из приложения
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -la out
+          NOTES="$(git log -1 --pretty=%B | head -c 1500)"
+          gh release create "build-${{ github.run_number }}" \
+            out/Zadachnik-android.apk out/Zadachnik-Setup.exe out/Zadachnik-windows-portable.zip \
+            --title "Сборка ${{ github.run_number }}" --notes "$NOTES" --latest
+          # keep only the 10 newest automatic releases
+          gh release list --limit 100 --json tagName --jq '.[].tagName' \
+            | grep '^build-' | sort -t- -k2 -nr | tail -n +11 \
+            | while read -r t; do gh release delete "$t" --yes --cleanup-tag; done
