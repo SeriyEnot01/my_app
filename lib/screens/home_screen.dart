@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../core/dates.dart';
 import '../core/scope.dart';
 import '../core/store.dart';
 import '../core/theme.dart';
 import '../core/updater.dart';
+import '../widgets/backdrop.dart';
 import '../widgets/common.dart';
+import '../widgets/hero.dart';
+import '../widgets/sidebar.dart';
 import 'layout_screen.dart';
 import 'settings_screen.dart';
 
@@ -41,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _store?.scrollRequest.removeListener(_onScrollRequest);
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -66,29 +69,116 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _openSettings() => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen()));
 
+  final _scroll = ScrollController();
+
   @override
   Widget build(BuildContext context) {
     final store = StoreScope.of(context);
     final layout = LayoutScope.of(context);
     final modules = layout.visible;
-    final now = DateTime.now();
-    final wide = MediaQuery.of(context).size.width >= 640;
+    final width = MediaQuery.of(context).size.width;
+    final sidebar = width >= 1180;
+    final contentWidth = sidebar ? width - 268 : width;
+    final twoColumns = contentWidth >= 960;
+
+    Widget block(int i) {
+      final m = modules[i];
+      return Padding(
+        key: _keys.putIfAbsent(m.id, () => GlobalKey()),
+        padding: const EdgeInsets.only(bottom: 18),
+        child: m.builder(),
+      );
+    }
+
+    final updateBanner = ListenableBuilder(
+      listenable: Updater.instance,
+      builder: (context, _) => Updater.instance.hasUpdate
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Material(
+                color: Color.alphaBlend(C.workout.withOpacity(.12), C.surface),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: C.workout.withOpacity(.45)),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.system_update_alt, color: C.workout),
+                  title: Text('Доступна новая версия: сборка ${Updater.instance.latest!.build}'),
+                  subtitle: const Text('Нажмите, чтобы обновить', style: TextStyle(color: C.muted)),
+                  onTap: _openSettings,
+                ),
+              ),
+            )
+          : const SizedBox.shrink(),
+    );
+
+    // blocks keep the order from «Блоки на экране»: on wide screens they alternate left / right
+    final Widget blocks = twoColumns
+        ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [for (var i = 0; i < modules.length; i += 2) block(i)])),
+            const SizedBox(width: 18),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [for (var i = 1; i < modules.length; i += 2) block(i)])),
+          ])
+        : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [for (var i = 0; i < modules.length; i++) block(i)]);
+
+    final content = RefreshIndicator(
+      onRefresh: store.syncNow,
+      child: SingleChildScrollView(
+        controller: _scroll,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(sidebar ? 22 : 16, sidebar ? 16 : 8, sidebar ? 22 : 16, 40),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: twoColumns ? 1360 : 760),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                updateBanner,
+                HeroHeader(wide: width >= 760),
+                const SizedBox(height: 18),
+                blocks,
+                Center(
+                  child: TextButton.icon(
+                    onPressed: _openLayout,
+                    icon: const Icon(Icons.tune, size: 18),
+                    label: const Text('Настроить блоки: тренировки, рутина, заметки и другие'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (sidebar) {
+      return Scaffold(
+        body: AppBackdrop(
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            SideBar(
+              onLayout: _openLayout,
+              onSettings: _openSettings,
+              onHome: () => _scroll.animateTo(0, duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic),
+            ),
+            Expanded(child: content),
+          ]),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 16,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Задачник', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w700)),
-            Text(
-              '${now.day} ${monthsGen[now.month - 1]}, ${weekdaysFull[now.weekday]}',
-              style: const TextStyle(fontSize: 12.5, color: C.muted),
-            ),
-          ],
-        ),
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(9),
+            child: Image.asset('assets/icon.png', width: 30, height: 30, errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+          ),
+          const SizedBox(width: 10),
+          Text('Задачник', style: display(18, weight: FontWeight.w700)),
+        ]),
         actions: [
-          _SyncBadge(store: store, showText: wide),
+          _SyncBadge(store: store, showText: width >= 640),
           ListenableBuilder(
             listenable: Updater.instance,
             builder: (context, _) => IconButton(
@@ -105,55 +195,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           const SizedBox(width: 4),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: store.syncNow,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 860),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ListenableBuilder(
-                    listenable: Updater.instance,
-                    builder: (context, _) => Updater.instance.hasUpdate
-                        ? Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Material(
-                              color: Color.alphaBlend(C.workout.withOpacity(.12), C.surface),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                side: BorderSide(color: C.workout.withOpacity(.45)),
-                              ),
-                              child: ListTile(
-                                leading: const Icon(Icons.system_update_alt, color: C.workout),
-                                title: Text('Доступна новая версия: сборка ${Updater.instance.latest!.build}'),
-                                subtitle: const Text('Нажмите, чтобы обновить', style: TextStyle(color: C.muted)),
-                                onTap: _openSettings,
-                              ),
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  for (final m in modules)
-                    Padding(
-                      key: _keys.putIfAbsent(m.id, () => GlobalKey()),
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: m.builder(),
-                    ),
-                  TextButton.icon(
-                    onPressed: _openLayout,
-                    icon: const Icon(Icons.tune, size: 18),
-                    label: const Text('Настроить блоки: тренировки, талисман и другие'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+      body: AppBackdrop(child: content),
     );
   }
 }

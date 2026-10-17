@@ -114,7 +114,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     children: [
                       const Row(children: [Dot(C.deadline, size: 10), SizedBox(width: 6), Dot(C.workout, size: 10), SizedBox(width: 6), Dot(C.faint, size: 10)]),
                       const SizedBox(height: 14),
-                      Text(_register ? 'Создать аккаунт' : 'Вход', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+                      Text(_register ? 'Создать аккаунт' : 'Вход', style: display(24, weight: FontWeight.w700)),
                       const SizedBox(height: 6),
                       Text(lead, style: const TextStyle(color: C.muted, fontSize: 14)),
                       const SizedBox(height: 18),

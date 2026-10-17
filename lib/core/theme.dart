@@ -17,12 +17,19 @@ class C {
   static const overdue = Color(0xFFFF5F7E);
   static const workout = Color(0xFF4FD6C4);
   static const workoutInk = Color(0xFF06221E);
+  static const sun = Color(0xFFFFC46B);
+  static const lilac = Color(0xFFC6A8FF);
 }
+
+/// Display face for headings and big numbers.
+TextStyle display(double size, {FontWeight weight = FontWeight.w500, Color color = C.fg}) =>
+    TextStyle(fontFamily: 'Unbounded', fontSize: size, fontWeight: weight, color: color, letterSpacing: .2, height: 1.15);
 
 ThemeData buildTheme() {
   final radius10 = BorderRadius.circular(10);
   final base = ThemeData(
     useMaterial3: true,
+    fontFamily: 'Onest',
     brightness: Brightness.dark,
     colorScheme: const ColorScheme.dark(
       primary: C.accent,

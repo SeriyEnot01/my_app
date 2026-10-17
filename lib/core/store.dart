@@ -119,6 +119,22 @@ class AppStore extends ChangeNotifier {
     _requestScroll('workouts');
   }
 
+  /// Scroll the main screen to a block (used by the sidebar).
+  void scrollTo(String moduleId) => _requestScroll(moduleId);
+
+  /// Days in a row with the whole morning routine done (today counts once finished).
+  int routineStreak() {
+    bool complete(DateTime d) => routineDay(ymd(d))?['complete'] == true;
+    var day = DateTime.now();
+    if (!complete(day)) day = addDays(day, -1);
+    var n = 0;
+    while (complete(day) && n < 3650) {
+      n++;
+      day = addDays(day, -1);
+    }
+    return n;
+  }
+
   void _requestScroll(String moduleId) {
     scrollRequest.value = null;
     scrollRequest.value = moduleId;

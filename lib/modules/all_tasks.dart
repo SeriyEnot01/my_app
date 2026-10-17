@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/models.dart';
 import '../core/scope.dart';
+import '../core/theme.dart';
 import '../widgets/common.dart';
 import '../widgets/task_widgets.dart';
 
@@ -24,6 +25,8 @@ class _AllTasksModuleState extends State<AllTasksModule> {
     final list = _hideDone ? all.where((t) => !isDone(t)).toList() : all;
     return Panel(
       title: 'Все задачи',
+      icon: Icons.list_alt,
+      tone: C.muted,
       count: all.length,
       trailing: TextButton(onPressed: () => setState(() => _open = !_open), child: Text(_open ? 'Свернуть' : 'Показать')),
       child: !_open

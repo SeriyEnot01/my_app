@@ -193,11 +193,24 @@ class TaskTile extends StatelessWidget {
       if (over) Tag('просрочено · ${human(due)}', color: C.overdue) else if (showDate && due.isNotEmpty) Tag(rel(due), color: C.deadline),
       if (time.isNotEmpty) Tag('до $time'),
     ];
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(color: C.surface2, borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+    final stripe = done
+        ? C.faint.withOpacity(.35)
+        : over
+            ? C.overdue
+            : due == todayStr()
+                ? C.deadline
+                : C.accent.withOpacity(.75);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(13),
+        child: Material(
+          color: done ? C.surface2.withOpacity(.6) : C.surface2,
+          child: IntrinsicHeight(
+            child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(width: 4, color: stripe),
+              Expanded(
+                child: InkWell(
         onTap: () => showTaskEditor(context, task),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(4, 4, 2, 10),
@@ -247,6 +260,11 @@ class TaskTile extends StatelessWidget {
                 },
               ),
             ],
+          ),
+        ),
+                ),
+              ),
+            ]),
           ),
         ),
       ),

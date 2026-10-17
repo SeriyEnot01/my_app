@@ -52,7 +52,8 @@ class _WorkoutsModuleState extends State<WorkoutsModule> {
     }
     return Panel(
       title: 'Тренировки',
-      dot: C.workout,
+      icon: Icons.fitness_center,
+      tone: C.workout,
       trailing: SegmentedButton<int>(
         segments: const [
           ButtonSegment(value: 0, label: Text('Журнал')),

@@ -52,6 +52,8 @@ class _NotesModuleState extends State<NotesModule> {
 
     return Panel(
       title: 'Заметки',
+      icon: Icons.sticky_note_2_outlined,
+      tone: C.lilac,
       count: all.length,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

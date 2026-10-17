@@ -149,7 +149,7 @@ class _MascotModuleState extends State<MascotModule> {
         ),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(hello, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+        Text(hello, style: display(18)),
         const SizedBox(height: 4),
         Text(line, style: const TextStyle(fontSize: 15)),
         const SizedBox(height: 4),

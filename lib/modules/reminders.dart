@@ -16,6 +16,8 @@ class RemindersModule extends StatelessWidget {
     final rc = ReminderScope.of(context);
     return Panel(
       title: 'Напоминания о дедлайнах',
+      icon: Icons.notifications_active_outlined,
+      tone: C.deadline,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

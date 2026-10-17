@@ -99,6 +99,8 @@ class _BackupModuleState extends State<BackupModule> {
   Widget build(BuildContext context) {
     return Panel(
       title: 'Резервная копия',
+      icon: Icons.save_alt,
+      tone: C.muted,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

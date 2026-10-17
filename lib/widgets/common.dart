@@ -12,10 +12,13 @@ class Dot extends StatelessWidget {
       Container(width: size, height: size, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
 }
 
-/// The rounded card every block lives in.
+/// The rounded card every block lives in: tinted glass surface, soft shadow,
+/// an icon chip in the module's colour and the title in the display face.
 class Panel extends StatelessWidget {
-  const Panel({super.key, this.title, this.dot, this.count, this.trailing, required this.child});
+  const Panel({super.key, this.title, this.icon, this.tone, this.dot, this.count, this.trailing, required this.child});
   final String? title;
+  final IconData? icon;
+  final Color? tone;
   final Color? dot;
   final int? count;
   final Widget? trailing;
@@ -23,30 +26,53 @@ class Panel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = tone ?? dot ?? C.accent;
     return Container(
       decoration: BoxDecoration(
-        color: C.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: C.line),
+        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color.alphaBlend(t.withOpacity(.07), C.surface), C.surface],
+        ),
+        border: Border.all(color: Colors.white.withOpacity(.06)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(.28), blurRadius: 28, offset: const Offset(0, 12)),
+        ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (title != null || trailing != null) ...[
             Row(
               children: [
-                if (dot != null) ...[Dot(dot!), const SizedBox(width: 10)],
+                if (icon != null) ...[
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: t.withOpacity(.15),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: t.withOpacity(.25)),
+                    ),
+                    child: Icon(icon, size: 18, color: t),
+                  ),
+                  const SizedBox(width: 12),
+                ] else if (dot != null) ...[
+                  Dot(dot!),
+                  const SizedBox(width: 10),
+                ],
                 if (title != null)
                   Flexible(
-                    child: Text(title!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    child: Text(title!, maxLines: 1, overflow: TextOverflow.ellipsis, style: display(15)),
                   ),
-                if (count != null) ...[const SizedBox(width: 8), CountPill(count!)],
+                if (count != null) ...[const SizedBox(width: 8), CountPill(count!, color: t)],
                 const Spacer(),
                 if (trailing != null) trailing!,
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
           ],
           child,
         ],
@@ -56,14 +82,21 @@ class Panel extends StatelessWidget {
 }
 
 class CountPill extends StatelessWidget {
-  const CountPill(this.n, {super.key});
+  const CountPill(this.n, {super.key, this.color});
   final int n;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        decoration: BoxDecoration(color: C.surface2, borderRadius: BorderRadius.circular(999)),
-        child: Text('$n', style: const TextStyle(fontSize: 12, color: C.muted, fontFeatures: tabular)),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
+        decoration: BoxDecoration(
+          color: n > 0 && color != null ? color!.withOpacity(.16) : C.surface2,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          '$n',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: n > 0 && color != null ? color : C.muted, fontFeatures: tabular),
+        ),
       );
 }
 
@@ -85,17 +118,23 @@ class Tag extends StatelessWidget {
 }
 
 class EmptyNote extends StatelessWidget {
-  const EmptyNote(this.text, {super.key});
+  const EmptyNote(this.text, {super.key, this.icon = Icons.auto_awesome_outlined});
   final String text;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
+          color: Colors.white.withOpacity(.02),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: C.line),
         ),
-        child: Text(text, textAlign: TextAlign.center, style: const TextStyle(color: C.muted, fontSize: 14)),
+        child: Column(children: [
+          Icon(icon, size: 22, color: C.faint),
+          const SizedBox(height: 8),
+          Text(text, textAlign: TextAlign.center, style: const TextStyle(color: C.muted, fontSize: 14, height: 1.4)),
+        ]),
       );
 }
 

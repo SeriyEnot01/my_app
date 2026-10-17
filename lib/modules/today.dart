@@ -18,7 +18,8 @@ class TodayModule extends StatelessWidget {
     final left = list.where((t) => !isDone(t)).length;
     return Panel(
       title: 'Сегодня',
-      dot: C.deadline,
+      icon: Icons.today,
+      tone: C.deadline,
       count: left,
       child: list.isEmpty
           ? const EmptyNote('На сегодня дедлайнов нет. Добавьте задачу, и она появится здесь в день дедлайна.')

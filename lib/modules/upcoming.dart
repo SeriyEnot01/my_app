@@ -45,7 +45,8 @@ class UpcomingModule extends StatelessWidget {
     }
     return Panel(
       title: 'Ближайшие 3 дня',
-      dot: C.deadline.withOpacity(.6),
+      icon: Icons.upcoming_outlined,
+      tone: C.accent,
       count: open,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: groups),
     );

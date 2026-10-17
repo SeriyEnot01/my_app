@@ -120,7 +120,8 @@ class _RoutineModuleState extends State<RoutineModule> {
 
     return Panel(
       title: 'Утренняя рутина',
-      dot: C.accent,
+      icon: Icons.wb_twilight,
+      tone: C.sun,
       trailing: TextButton.icon(
         onPressed: () => setState(() => _editing = !_editing),
         icon: Icon(_editing ? Icons.check : Icons.edit_outlined, size: 18),

@@ -26,10 +26,10 @@ class StatsModule extends StatelessWidget {
     final gymN = store.logs.where((l) => str(l, 'date').startsWith(month)).length;
     final now = DateTime.now();
     final tiles = [
-      _Tile(todayN, 'на сегодня', C.deadline),
-      _Tile(soonN, 'в ближайшие 3 дня', C.fg),
-      _Tile(overN, 'просрочено', overN > 0 ? C.overdue : C.fg),
-      _Tile(gymN, '${plural(gymN, 'тренировка', 'тренировки', 'тренировок')} в ${_monthsPrep[now.month - 1]}', C.workout),
+      _Tile(todayN, 'на сегодня', C.deadline, Icons.flag_outlined),
+      _Tile(soonN, 'в ближайшие 3 дня', C.accent, Icons.upcoming_outlined),
+      _Tile(overN, 'просрочено', overN > 0 ? C.overdue : C.muted, Icons.error_outline),
+      _Tile(gymN, '${plural(gymN, 'тренировка', 'тренировки', 'тренировок')} в ${_monthsPrep[now.month - 1]}', C.workout, Icons.fitness_center),
     ];
     return LayoutBuilder(builder: (context, c) {
       final cols = c.maxWidth >= 560 ? 4 : 2;
@@ -44,25 +44,39 @@ class StatsModule extends StatelessWidget {
 }
 
 class _Tile extends StatelessWidget {
-  const _Tile(this.n, this.label, this.color);
+  const _Tile(this.n, this.label, this.color, this.icon);
   final int n;
   final String label;
   final Color color;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
         decoration: BoxDecoration(
-          color: C.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: C.line),
+          borderRadius: BorderRadius.circular(18),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color.alphaBlend(color.withOpacity(.14), C.surface), C.surface],
+          ),
+          border: Border.all(color: color.withOpacity(.22)),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(.25), blurRadius: 20, offset: const Offset(0, 10))],
         ),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$n', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: color, fontFeatures: tabular)),
-            const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 12.5, color: C.muted), maxLines: 2),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('$n', style: display(28, weight: FontWeight.w700, color: color == C.muted ? C.fg : color)),
+                  const SizedBox(height: 4),
+                  Text(label, style: const TextStyle(fontSize: 12.5, color: C.muted), maxLines: 2),
+                ],
+              ),
+            ),
+            Icon(icon, size: 20, color: color.withOpacity(.8)),
           ],
         ),
       );

@@ -61,6 +61,8 @@ class _CalendarModuleState extends State<CalendarModule> {
 
     return Panel(
       title: 'Календарь',
+      icon: Icons.calendar_month,
+      tone: C.lilac,
       trailing: TextButton(
         onPressed: () {
           final n = DateTime.now();
@@ -82,7 +84,7 @@ class _CalendarModuleState extends State<CalendarModule> {
                 child: Text(
                   '${monthsNom[_month - 1]} $_year',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: display(16),
                 ),
               ),
               IconButton(onPressed: () => _shift(1), icon: const Icon(Icons.chevron_right), tooltip: 'Следующий месяц'),
