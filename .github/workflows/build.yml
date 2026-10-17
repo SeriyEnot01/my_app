@@ -71,18 +71,18 @@ jobs:
           flutter build apk --release --build-number=${{ github.run_number }} \
             --dart-define=SUPABASE_URL="$SUPABASE_URL" --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
             --dart-define=BUILD_NUMBER=${{ github.run_number }} --dart-define=UPDATE_REPO=${{ github.repository }}
-          cp build/app/outputs/flutter-apk/app-release.apk Zadachnik-android.apk
+          cp build/app/outputs/flutter-apk/app-release.apk workflows-android.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Zadachnik-android
-          path: Zadachnik-android.apk
+          name: workflows-android
+          path: workflows-android.apk
 
       - name: Приложить к релизу
         if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" Zadachnik-android.apk --clobber
+        run: gh release upload "${{ github.event.release.tag_name }}" workflows-android.apk --clobber
 
   windows:
     name: Windows (установщик)
@@ -128,7 +128,7 @@ jobs:
           foreach ($dll in "msvcp140.dll","vcruntime140.dll","vcruntime140_1.dll") {
             Copy-Item "C:\Windows\System32\$dll" $out -ErrorAction SilentlyContinue
           }
-          Compress-Archive -Path "$out\*" -DestinationPath Zadachnik-windows-portable.zip -Force
+          Compress-Archive -Path "$out\*" -DestinationPath workflows-windows-portable.zip -Force
 
       - name: Установщик
         shell: pwsh
@@ -138,21 +138,21 @@ jobs:
           if (-not (Test-Path $iscc)) { $iscc = "$env:ProgramFiles\Inno Setup 6\ISCC.exe" }
           & $iscc "/DAppVersion=1.0.${{ github.run_number }}" installer\zadachnik.iss
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Copy-Item dist\Zadachnik-Setup.exe .
+          Copy-Item dist\workflows-Setup.exe .
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Zadachnik-windows
+          name: workflows-windows
           path: |
-            Zadachnik-Setup.exe
-            Zadachnik-windows-portable.zip
+            workflows-Setup.exe
+            workflows-windows-portable.zip
 
       - name: Приложить к релизу
         if: github.event_name == 'release'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" Zadachnik-Setup.exe Zadachnik-windows-portable.zip --clobber
+        run: gh release upload "${{ github.event.release.tag_name }}" workflows-Setup.exe workflows-windows-portable.zip --clobber
 
   publish:
     name: Опубликовать обновление
@@ -174,7 +174,7 @@ jobs:
           ls -la out
           NOTES="$(git log -1 --pretty=%B | head -c 1500)"
           gh release create "build-${{ github.run_number }}" \
-            out/Zadachnik-android.apk out/Zadachnik-Setup.exe out/Zadachnik-windows-portable.zip \
+            out/workflows-android.apk out/workflows-Setup.exe out/workflows-windows-portable.zip \
             --title "Сборка ${{ github.run_number }}" --notes "$NOTES" --latest
           # keep only the 10 newest automatic releases
           gh release list --limit 100 --json tagName --jq '.[].tagName' \
