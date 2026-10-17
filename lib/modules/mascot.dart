@@ -85,7 +85,7 @@ class _MascotModuleState extends State<MascotModule> {
     });
   }
 
-  Widget _placeholder() => const Center(
+  Widget _placeholder() => Center(
         child: Padding(
           padding: EdgeInsets.all(12),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -138,8 +138,8 @@ class _MascotModuleState extends State<MascotModule> {
     final sub = w > 0 ? 'Тренировок за 7 дней: $w.' : 'За неделю пока без тренировок.';
 
     final bubble = Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      decoration: const BoxDecoration(
+      padding: EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
         color: C.surface2,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(16),
@@ -150,16 +150,16 @@ class _MascotModuleState extends State<MascotModule> {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(hello, style: display(18)),
-        const SizedBox(height: 4),
-        Text(line, style: const TextStyle(fontSize: 15)),
-        const SizedBox(height: 4),
-        Text(sub, style: const TextStyle(fontSize: 13, color: C.muted)),
+        SizedBox(height: 4),
+        Text(line, style: TextStyle(fontSize: 15)),
+        SizedBox(height: 4),
+        Text(sub, style: TextStyle(fontSize: 13, color: C.muted)),
       ]),
     );
     final buttons = Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
-      OutlinedButton(onPressed: _pick, child: const Text('Выбрать гифку')),
-      if (_custom != null) OutlinedButton(onPressed: _reset, child: const Text('Убрать')),
-      if (_msg.isNotEmpty) Text(_msg, style: const TextStyle(color: C.overdue, fontSize: 12.5)),
+      OutlinedButton(onPressed: _pick, child: Text('Выбрать гифку')),
+      if (_custom != null) OutlinedButton(onPressed: _reset, child: Text('Убрать')),
+      if (_msg.isNotEmpty) Text(_msg, style: TextStyle(color: C.overdue, fontSize: 12.5)),
     ]);
 
     return Panel(
@@ -167,16 +167,16 @@ class _MascotModuleState extends State<MascotModule> {
         if (c.maxWidth >= 520) {
           return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
             _frame(190),
-            const SizedBox(width: 20),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [bubble, const SizedBox(height: 14), buttons])),
+            SizedBox(width: 20),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [bubble, SizedBox(height: 14), buttons])),
           ]);
         }
         final size = c.maxWidth.clamp(0.0, 300.0).toDouble();
         return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Center(child: _frame(size)),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           bubble,
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           buttons,
         ]);
       }),

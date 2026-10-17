@@ -69,29 +69,29 @@ class _NotesModuleState extends State<NotesModule> {
                   maxLength: 5000,
                   keyboardType: TextInputType.multiline,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: const InputDecoration(hintText: 'Мысль, ссылка, список покупок…', counterText: ''),
+                  decoration: InputDecoration(hintText: 'Мысль, ссылка, список покупок…', counterText: ''),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               IconButton.filled(
                 onPressed: () => _send(store),
-                icon: const Icon(Icons.send_rounded),
+                icon: Icon(Icons.send_rounded),
                 tooltip: 'Сохранить заметку',
               ),
             ],
           ),
           if (all.length > 5) ...[
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             TextField(
               controller: _search,
               onChanged: (v) => setState(() => _query = v),
               decoration: InputDecoration(
                 hintText: 'Поиск по заметкам',
-                prefixIcon: const Icon(Icons.search, size: 20, color: C.muted),
+                prefixIcon: Icon(Icons.search, size: 20, color: C.muted),
                 suffixIcon: _query.isEmpty
                     ? null
                     : IconButton(
-                        icon: const Icon(Icons.close, size: 18),
+                        icon: Icon(Icons.close, size: 18),
                         tooltip: 'Очистить поиск',
                         onPressed: () => setState(() {
                           _search.clear();
@@ -101,11 +101,11 @@ class _NotesModuleState extends State<NotesModule> {
               ),
             ),
           ],
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           if (all.isEmpty)
-            const EmptyNote('Здесь будут заметки без даты: идеи, ссылки, списки. Напишите что-нибудь и нажмите ➤.')
+            EmptyNote('Здесь будут заметки без даты: идеи, ссылки, списки. Напишите что-нибудь и нажмите ➤.')
           else if (list.isEmpty)
-            const Hint('Ничего не нашлось.')
+            Hint('Ничего не нашлось.')
           else ...[
             for (final n in list.take(_show)) _NoteBubble(key: ValueKey(n['id']), note: n),
             if (list.length > _show)
@@ -140,13 +140,13 @@ class _NoteBubble extends StatelessWidget {
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+          padding: EdgeInsets.fromLTRB(20, 0, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Изменить заметку', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 14),
+              Text('Изменить заметку', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              SizedBox(height: 14),
               TextField(
                 controller: c,
                 autofocus: true,
@@ -155,9 +155,9 @@ class _NoteBubble extends StatelessWidget {
                 maxLength: 5000,
                 keyboardType: TextInputType.multiline,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(counterText: ''),
+                decoration: InputDecoration(counterText: ''),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Align(
                 alignment: Alignment.centerLeft,
                 child: FilledButton(
@@ -166,7 +166,7 @@ class _NoteBubble extends StatelessWidget {
                     if (t.isNotEmpty) store.put({...note, 'text': t});
                     Navigator.pop(ctx);
                   },
-                  child: const Text('Сохранить'),
+                  child: Text('Сохранить'),
                 ),
               ),
             ],
@@ -185,7 +185,7 @@ class _NoteBubble extends StatelessWidget {
     final updated = (note['updated'] ?? created) as num;
     final edited = updated - created > 60000;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: Material(
         color: C.surface2,
         shape: RoundedRectangleBorder(
@@ -196,7 +196,7 @@ class _NoteBubble extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           onTap: () => _edit(context, store),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 4, 10),
+            padding: EdgeInsets.fromLTRB(14, 10, 4, 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -205,7 +205,7 @@ class _NoteBubble extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (pinned)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.only(bottom: 4),
                           child: Row(children: [
                             Icon(Icons.push_pin, size: 13, color: C.accent),
@@ -213,17 +213,17 @@ class _NoteBubble extends StatelessWidget {
                             Text('Закреплено', style: TextStyle(fontSize: 11.5, color: C.accent)),
                           ]),
                         ),
-                      Text(str(note, 'text'), style: const TextStyle(fontSize: 14.5, height: 1.4)),
-                      const SizedBox(height: 6),
+                      Text(str(note, 'text'), style: TextStyle(fontSize: 14.5, height: 1.4)),
+                      SizedBox(height: 6),
                       Text(
                         _stamp(created) + (edited ? ' · изменено' : ''),
-                        style: const TextStyle(fontSize: 11.5, color: C.faint, fontFeatures: tabular),
+                        style: TextStyle(fontSize: 11.5, color: C.faint, fontFeatures: tabular),
                       ),
                     ],
                   ),
                 ),
                 PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, size: 20, color: C.muted),
+                  icon: Icon(Icons.more_vert, size: 20, color: C.muted),
                   tooltip: 'Действия',
                   onSelected: (v) async {
                     switch (v) {
@@ -240,9 +240,9 @@ class _NoteBubble extends StatelessWidget {
                   },
                   itemBuilder: (_) => [
                     PopupMenuItem(value: 'pin', child: Text(pinned ? 'Открепить' : 'Закрепить')),
-                    const PopupMenuItem(value: 'copy', child: Text('Копировать')),
-                    const PopupMenuItem(value: 'edit', child: Text('Изменить')),
-                    const PopupMenuItem(value: 'delete', child: Text('Удалить')),
+                    PopupMenuItem(value: 'copy', child: Text('Копировать')),
+                    PopupMenuItem(value: 'edit', child: Text('Изменить')),
+                    PopupMenuItem(value: 'delete', child: Text('Удалить')),
                   ],
                 ),
               ],

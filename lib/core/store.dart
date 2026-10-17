@@ -82,6 +82,9 @@ class AppStore extends ChangeNotifier {
       return p != 0 ? p : _n(b, 'created').compareTo(_n(a, 'created'));
     });
 
+  /// Timetable entries (see core/schedule.dart).
+  List<Item> get events => _ofKind('event');
+
   /// Morning routine steps in the user's order.
   List<Item> get routineSteps => _ofKind('routine_item')
     ..sort((a, b) {

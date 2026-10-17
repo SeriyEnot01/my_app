@@ -26,13 +26,13 @@ class SideBar extends StatelessWidget {
     };
     return Container(
       width: 252,
-      margin: const EdgeInsets.fromLTRB(16, 16, 0, 16),
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+      margin: EdgeInsets.fromLTRB(16, 16, 0, 16),
+      padding: EdgeInsets.fromLTRB(16, 20, 16, 16),
       decoration: BoxDecoration(
         color: C.surface.withOpacity(.78),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withOpacity(.06)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(.3), blurRadius: 30, offset: const Offset(0, 12))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(.3), blurRadius: 30, offset: Offset(0, 12))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -40,12 +40,12 @@ class SideBar extends StatelessWidget {
           Row(children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.asset('assets/icon.png', width: 40, height: 40, errorBuilder: (_, __, ___) => const SizedBox(width: 40, height: 40)),
+              child: Image.asset('assets/icon.png', width: 40, height: 40, errorBuilder: (_, __, ___) => SizedBox(width: 40, height: 40)),
             ),
-            const SizedBox(width: 12),
-            Expanded(child: Text('Задачник', style: display(18, weight: FontWeight.w700))),
+            SizedBox(width: 12),
+            Expanded(child: Text('workflows', style: display(18, weight: FontWeight.w700))),
           ]),
-          const SizedBox(height: 26),
+          SizedBox(height: 26),
           _NavItem(icon: Icons.space_dashboard_outlined, label: 'Главная', selected: true, onTap: onHome),
           _NavItem(icon: Icons.dashboard_customize_outlined, label: 'Блоки на экране', onTap: onLayout),
           ListenableBuilder(
@@ -57,8 +57,8 @@ class SideBar extends StatelessWidget {
               badge: Updater.instance.hasUpdate ? 'новая версия' : null,
             ),
           ),
-          const SizedBox(height: 22),
-          const Padding(padding: EdgeInsets.only(left: 10, bottom: 8), child: SectionLabel('Перейти к блоку')),
+          SizedBox(height: 22),
+          Padding(padding: EdgeInsets.only(left: 10, bottom: 8), child: SectionLabel('Перейти к блоку')),
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -68,23 +68,23 @@ class SideBar extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(12),
             decoration: BoxDecoration(color: C.surface2, borderRadius: BorderRadius.circular(14)),
             child: Row(children: [
               Dot(statusColor, size: 9),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(store.status.isEmpty ? 'Готово' : store.status, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12.5)),
+                  Text(store.status.isEmpty ? 'Готово' : store.status, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12.5)),
                   if (store.email.isNotEmpty)
-                    Text(store.email, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5, color: C.faint)),
+                    Text(store.email, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11.5, color: C.faint)),
                 ]),
               ),
               if (store.configured)
                 IconButton(
-                  icon: const Icon(Icons.sync, size: 18, color: C.muted),
+                  icon: Icon(Icons.sync, size: 18, color: C.muted),
                   tooltip: 'Синхронизировать',
                   onPressed: store.syncNow,
                   visualDensity: VisualDensity.compact,
@@ -109,7 +109,7 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
+      padding: EdgeInsets.only(bottom: 2),
       child: Material(
         color: selected ? C.accent.withOpacity(.14) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
@@ -120,7 +120,7 @@ class _NavItem extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 10, vertical: dense ? 8 : 11),
             child: Row(children: [
               Icon(icon, size: dense ? 17 : 20, color: selected ? C.accent : C.muted),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Text(
                   label,
@@ -135,9 +135,9 @@ class _NavItem extends StatelessWidget {
               ),
               if (badge != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(color: C.workout.withOpacity(.18), borderRadius: BorderRadius.circular(99)),
-                  child: Text(badge!, style: const TextStyle(fontSize: 10.5, color: C.workout)),
+                  child: Text(badge!, style: TextStyle(fontSize: 10.5, color: C.workout)),
                 ),
             ]),
           ),

@@ -36,10 +36,10 @@ class _AllTasksModuleState extends State<AllTasksModule> {
               children: [
                 Row(children: [
                   Checkbox(value: _hideDone, onChanged: (v) => setState(() => _hideDone = v ?? false)),
-                  const Text('Скрыть выполненные'),
+                  Text('Скрыть выполненные'),
                 ]),
-                const SizedBox(height: 6),
-                if (list.isEmpty) const EmptyNote('Пока пусто.'),
+                SizedBox(height: 6),
+                if (list.isEmpty) EmptyNote('Пока пусто.'),
                 for (final t in list) TaskTile(key: ValueKey(t['id']), task: t, showDate: true),
               ],
             ),

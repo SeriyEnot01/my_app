@@ -57,7 +57,7 @@ def android():
             '        </receiver>\n'
         )
         m = must_sub(r"(\s*</application>)", "\n" + receivers.rstrip("\n") + r"\1", m, "notification receivers")
-    m = must_sub(r'android:label="[^"]*"', 'android:label="Задачник"', m, "app label")
+    m = must_sub(r'android:label="[^"]*"', 'android:label="workflows"', m, "app label")
     # Never copy app data (decrypted cache, sign-in token) to Google Drive backups or device transfers.
     if "allowBackup" not in m:
         m = must_sub(
@@ -199,8 +199,7 @@ def android():
 def windows():
     main_cpp = ROOT / "windows/runner/main.cpp"
     c = read(main_cpp)
-    # "Задачник" as escaped UTF-16 so the source stays ASCII
-    title = 'L"\\x0417\\x0430\\x0434\\x0430\\x0447\\x043d\\x0438\\x043a"'
+    title = 'L"workflows"'
     if 'L"zadachnik"' not in c:
         sys.exit("patch_platforms: could not apply 'window title'. The Flutter template may have changed.")
     write(main_cpp, c.replace('L"zadachnik"', title))

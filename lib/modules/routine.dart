@@ -79,7 +79,7 @@ class _RoutineModuleState extends State<RoutineModule> {
     final title = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Изменить шаг', style: TextStyle(fontSize: 18)),
+        title: Text('Изменить шаг', style: TextStyle(fontSize: 18)),
         content: TextField(
           controller: c,
           autofocus: true,
@@ -87,8 +87,8 @@ class _RoutineModuleState extends State<RoutineModule> {
           onSubmitted: (v) => Navigator.pop(ctx, v),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Отмена')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, c.text), child: const Text('Сохранить')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Отмена')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, c.text), child: Text('Сохранить')),
         ],
       ),
     );
@@ -134,11 +134,11 @@ class _RoutineModuleState extends State<RoutineModule> {
   Widget _checklist(AppStore store, List<Item> steps, Set<String> done, int doneCount, int total, int streak) {
     if (steps.isEmpty) {
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const EmptyNote('Составьте список того, что делаете каждое утро: стакан воды, зарядка, душ, план на день…'),
-        const SizedBox(height: 12),
+        EmptyNote('Составьте список того, что делаете каждое утро: стакан воды, зарядка, душ, план на день…'),
+        SizedBox(height: 12),
         Align(
           alignment: Alignment.centerLeft,
-          child: FilledButton(onPressed: () => setState(() => _editing = true), child: const Text('Составить рутину')),
+          child: FilledButton(onPressed: () => setState(() => _editing = true), child: Text('Составить рутину')),
         ),
       ]);
     }
@@ -148,15 +148,15 @@ class _RoutineModuleState extends State<RoutineModule> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(children: [
-          Text('$doneCount из $total', style: const TextStyle(fontWeight: FontWeight.w600, fontFeatures: tabular)),
-          const Spacer(),
+          Text('$doneCount из $total', style: TextStyle(fontWeight: FontWeight.w600, fontFeatures: tabular)),
+          Spacer(),
           if (streak > 0)
             Text(
               'Серия: $streak ${plural(streak, 'день', 'дня', 'дней')}',
-              style: const TextStyle(color: C.accent, fontSize: 13),
+              style: TextStyle(color: C.accent, fontSize: 13),
             ),
         ]),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(99),
           child: LinearProgressIndicator(
@@ -166,10 +166,10 @@ class _RoutineModuleState extends State<RoutineModule> {
             color: all ? C.workout : C.accent,
           ),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         for (final s in steps)
           Padding(
-            padding: const EdgeInsets.only(bottom: 6),
+            padding: EdgeInsets.only(bottom: 6),
             child: Material(
               color: C.surface2,
               borderRadius: BorderRadius.circular(12),
@@ -177,7 +177,7 @@ class _RoutineModuleState extends State<RoutineModule> {
                 borderRadius: BorderRadius.circular(12),
                 onTap: () => _toggle(store, str(s, 'id'), steps),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 2, 12, 2),
+                  padding: EdgeInsets.fromLTRB(4, 2, 12, 2),
                   child: Row(children: [
                     Checkbox(
                       value: done.contains(str(s, 'id')),
@@ -201,10 +201,10 @@ class _RoutineModuleState extends State<RoutineModule> {
             ),
           ),
         if (all) ...[
-          const SizedBox(height: 6),
-          const Text('Утро прошло по плану. Отличное начало дня!', style: TextStyle(color: C.workout)),
+          SizedBox(height: 6),
+          Text('Утро прошло по плану. Отличное начало дня!', style: TextStyle(color: C.workout)),
         ],
-        const SizedBox(height: 14),
+        SizedBox(height: 14),
         // last 14 days: full = everything done, faint = partly done
         Row(
           children: List.generate(14, (i) {
@@ -216,7 +216,7 @@ class _RoutineModuleState extends State<RoutineModule> {
               child: Tooltip(
                 message: human(ds) + (complete ? ': всё сделано' : partial ? ': частично' : ''),
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                  margin: EdgeInsets.symmetric(horizontal: 1.5),
                   height: 18,
                   decoration: BoxDecoration(
                     color: complete ? C.accent : (partial ? C.accent.withOpacity(.35) : C.surface2),
@@ -228,8 +228,8 @@ class _RoutineModuleState extends State<RoutineModule> {
             );
           }),
         ),
-        const SizedBox(height: 4),
-        const Row(
+        SizedBox(height: 4),
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('2 недели назад', style: TextStyle(fontSize: 11, color: C.faint)),
@@ -245,11 +245,11 @@ class _RoutineModuleState extends State<RoutineModule> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (steps.isNotEmpty) ...[
-          const Hint('Перетащите за ручку, чтобы поменять порядок. Нажмите на шаг, чтобы переименовать.'),
-          const SizedBox(height: 8),
+          Hint('Перетащите за ручку, чтобы поменять порядок. Нажмите на шаг, чтобы переименовать.'),
+          SizedBox(height: 8),
           ReorderableListView.builder(
             shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
+            physics: NeverScrollableScrollPhysics(),
             buildDefaultDragHandles: false,
             itemCount: steps.length,
             onReorder: (o, n) => _reorder(store, steps, o, n),
@@ -257,21 +257,21 @@ class _RoutineModuleState extends State<RoutineModule> {
               final s = steps[i];
               return Padding(
                 key: ValueKey(str(s, 'id')),
-                padding: const EdgeInsets.only(bottom: 6),
+                padding: EdgeInsets.only(bottom: 6),
                 child: Material(
                   color: C.surface2,
                   borderRadius: BorderRadius.circular(12),
                   child: ListTile(
                     dense: true,
-                    contentPadding: const EdgeInsets.only(left: 4, right: 4),
+                    contentPadding: EdgeInsets.only(left: 4, right: 4),
                     leading: ReorderableDragStartListener(
                       index: i,
-                      child: const Padding(padding: EdgeInsets.all(8), child: Icon(Icons.drag_handle, color: C.muted)),
+                      child: Padding(padding: EdgeInsets.all(8), child: Icon(Icons.drag_handle, color: C.muted)),
                     ),
                     title: Text(str(s, 'title')),
                     onTap: () => _rename(context, store, s),
                     trailing: IconButton(
-                      icon: const Icon(Icons.close, size: 18, color: C.faint),
+                      icon: Icon(Icons.close, size: 18, color: C.faint),
                       tooltip: 'Удалить шаг',
                       onPressed: () async {
                         if (await confirmDialog(context, 'Удалить шаг из рутины?', body: str(s, 'title'))) {
@@ -284,7 +284,7 @@ class _RoutineModuleState extends State<RoutineModule> {
               );
             },
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
         ],
         Row(children: [
           Expanded(
@@ -292,14 +292,14 @@ class _RoutineModuleState extends State<RoutineModule> {
               controller: _newStep,
               maxLength: 120,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(labelText: 'Новый шаг', hintText: 'Например, стакан воды', counterText: ''),
+              decoration: InputDecoration(labelText: 'Новый шаг', hintText: 'Например, стакан воды', counterText: ''),
               onSubmitted: (_) => _addStep(store, steps),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           IconButton.filled(
             onPressed: () => _addStep(store, steps),
-            icon: const Icon(Icons.add),
+            icon: Icon(Icons.add),
             tooltip: 'Добавить шаг',
           ),
         ]),

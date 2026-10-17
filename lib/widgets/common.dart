@@ -33,14 +33,14 @@ class Panel extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color.alphaBlend(t.withOpacity(.07), C.surface), C.surface],
+          colors: [Color.alphaBlend(t.withOpacity(.07), C.card()), C.card(.72)],
         ),
         border: Border.all(color: Colors.white.withOpacity(.06)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(.28), blurRadius: 28, offset: const Offset(0, 12)),
+          BoxShadow(color: Colors.black.withOpacity(C.glass ? .18 : .28), blurRadius: 28, offset: Offset(0, 12)),
         ],
       ),
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      padding: EdgeInsets.fromLTRB(18, 16, 18, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -58,21 +58,21 @@ class Panel extends StatelessWidget {
                     ),
                     child: Icon(icon, size: 18, color: t),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                 ] else if (dot != null) ...[
                   Dot(dot!),
-                  const SizedBox(width: 10),
+                  SizedBox(width: 10),
                 ],
                 if (title != null)
                   Flexible(
                     child: Text(title!, maxLines: 1, overflow: TextOverflow.ellipsis, style: display(15)),
                   ),
-                if (count != null) ...[const SizedBox(width: 8), CountPill(count!, color: t)],
-                const Spacer(),
+                if (count != null) ...[SizedBox(width: 8), CountPill(count!, color: t)],
+                Spacer(),
                 if (trailing != null) trailing!,
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
           ],
           child,
         ],
@@ -88,7 +88,7 @@ class CountPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
+        padding: EdgeInsets.symmetric(horizontal: 9, vertical: 2),
         decoration: BoxDecoration(
           color: n > 0 && color != null ? color!.withOpacity(.16) : C.surface2,
           borderRadius: BorderRadius.circular(999),
@@ -107,7 +107,7 @@ class Tag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
           color: C.bg,
           borderRadius: BorderRadius.circular(999),
@@ -124,7 +124,7 @@ class EmptyNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(.02),
           borderRadius: BorderRadius.circular(14),
@@ -132,8 +132,8 @@ class EmptyNote extends StatelessWidget {
         ),
         child: Column(children: [
           Icon(icon, size: 22, color: C.faint),
-          const SizedBox(height: 8),
-          Text(text, textAlign: TextAlign.center, style: const TextStyle(color: C.muted, fontSize: 14, height: 1.4)),
+          SizedBox(height: 8),
+          Text(text, textAlign: TextAlign.center, style: TextStyle(color: C.muted, fontSize: 14, height: 1.4)),
         ]),
       );
 }
@@ -155,7 +155,7 @@ class SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text.toUpperCase(),
-        style: const TextStyle(fontSize: 11.5, letterSpacing: 1, color: C.muted, fontWeight: FontWeight.w500),
+        style: TextStyle(fontSize: 11.5, letterSpacing: 1, color: C.muted, fontWeight: FontWeight.w500),
       );
 }
 
@@ -177,10 +177,10 @@ class PickerField extends StatelessWidget {
         decoration: InputDecoration(
           labelText: label,
           suffixIcon: onClear != null
-              ? IconButton(icon: const Icon(Icons.close, size: 18), tooltip: 'Очистить', onPressed: onClear)
+              ? IconButton(icon: Icon(Icons.close, size: 18), tooltip: 'Очистить', onPressed: onClear)
               : Icon(icon, size: 18, color: C.muted),
         ),
-        child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontFeatures: tabular)),
+        child: Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontFeatures: tabular)),
       ),
     );
   }
@@ -192,10 +192,10 @@ Future<bool> confirmDialog(BuildContext context, String title, {String? body, St
   final ok = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: Text(title, style: const TextStyle(fontSize: 18)),
-      content: body == null ? null : Text(body, style: const TextStyle(color: C.muted)),
+      title: Text(title, style: TextStyle(fontSize: 18)),
+      content: body == null ? null : Text(body, style: TextStyle(color: C.muted)),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Отмена')),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: C.overdue, foregroundColor: C.bg),
           onPressed: () => Navigator.pop(ctx, true),
@@ -210,11 +210,11 @@ Future<bool> confirmDialog(BuildContext context, String title, {String? body, St
 void toast(BuildContext context, String message) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 3)));
+    ..showSnackBar(SnackBar(content: Text(message), duration: Duration(seconds: 3)));
 }
 
 Future<String?> pickTime(BuildContext context, String current) async {
-  TimeOfDay initial = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay initial = TimeOfDay(hour: 9, minute: 0);
   if (current.contains(':')) {
     final p = current.split(':');
     initial = TimeOfDay(hour: int.parse(p[0]), minute: int.parse(p[1]));

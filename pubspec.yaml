@@ -33,6 +33,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/bg/
   fonts:
     - family: Onest
       fonts:
@@ -49,6 +50,25 @@ flutter:
           weight: 500
         - asset: assets/fonts/Unbounded-Bold.ttf
           weight: 700
+    - family: Comfortaa
+      fonts:
+        - asset: assets/fonts/Comfortaa-Bold.ttf
+          weight: 700
+    - family: RussoOne
+      fonts:
+        - asset: assets/fonts/RussoOne-Regular.ttf
+    - family: CormorantSC
+      fonts:
+        - asset: assets/fonts/CormorantSC-Bold.ttf
+          weight: 700
+    - family: Exo2
+      fonts:
+        - asset: assets/fonts/Exo2-Bold.ttf
+          weight: 700
+    - family: Oswald
+      fonts:
+        - asset: assets/fonts/Oswald-SemiBold.ttf
+          weight: 600
 
 flutter_launcher_icons:
   android: true

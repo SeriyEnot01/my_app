@@ -45,18 +45,20 @@ Future<void> main() async {
   final store = AppStore(prefs, configured: configured);
   final layout = LayoutController(prefs);
   final reminders = ReminderController(prefs, store);
-  runApp(ZadachnikApp(store: store, layout: layout, reminders: reminders));
+  final themes = ThemeController(prefs);
+  runApp(WorkflowsApp(store: store, layout: layout, reminders: reminders, themes: themes));
   await store.boot();
   await reminders.apply(force: true);
   // quiet check: shows a banner on the main screen when GitHub has a newer build
   await Updater.instance.check(quiet: true);
 }
 
-class ZadachnikApp extends StatelessWidget {
-  const ZadachnikApp({super.key, required this.store, required this.layout, required this.reminders});
+class WorkflowsApp extends StatelessWidget {
+  const WorkflowsApp({super.key, required this.store, required this.layout, required this.reminders, required this.themes});
   final AppStore store;
   final LayoutController layout;
   final ReminderController reminders;
+  final ThemeController themes;
 
   @override
   Widget build(BuildContext context) {
@@ -66,18 +68,24 @@ class ZadachnikApp extends StatelessWidget {
         layout: layout,
         child: ReminderScope(
           controller: reminders,
-          child: MaterialApp(
-            title: 'Задачник',
+          child: ThemeScope(
+            controller: themes,
+            child: ListenableBuilder(
+              listenable: themes,
+              builder: (context, _) => MaterialApp(
+            title: 'workflows',
             debugShowCheckedModeBanner: false,
             theme: buildTheme(),
-            locale: const Locale('ru'),
-            supportedLocales: const [Locale('ru'), Locale('en')],
-            localizationsDelegates: const [
+            locale: Locale('ru'),
+            supportedLocales: [Locale('ru'), Locale('en')],
+            localizationsDelegates: [
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            home: const _Root(),
+            home: _Root(),
+          ),
+            ),
           ),
         ),
       ),
@@ -98,8 +106,9 @@ class _RootState extends State<_Root> {
   @override
   Widget build(BuildContext context) {
     final store = StoreScope.of(context);
+    ThemeScope.of(context);
     if (store.booting) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final signedIn = !store.needsAuth;
     if (_wasSignedIn && !signedIn && store.uid == null) {
@@ -107,6 +116,6 @@ class _RootState extends State<_Root> {
       ReminderScope.read(context).clearForSignOut();
     }
     _wasSignedIn = signedIn;
-    return signedIn ? const HomeScreen() : const AuthScreen();
+    return signedIn ? HomeScreen() : AuthScreen();
   }
 }

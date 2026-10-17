@@ -60,7 +60,7 @@ class Reminders {
 
   static Future<void> showTest() async {
     if (!_ready) return;
-    await _plugin.show(1, 'Задачник', 'Так будет выглядеть напоминание о дедлайне.', _details);
+    await _plugin.show(1, 'workflows', 'Так будет выглядеть напоминание о дедлайне.', _details);
   }
 
   static Future<void> cancelAll() async {

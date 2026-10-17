@@ -55,13 +55,13 @@ class _WorkoutsModuleState extends State<WorkoutsModule> {
       icon: Icons.fitness_center,
       tone: C.workout,
       trailing: SegmentedButton<int>(
-        segments: const [
+        segments: [
           ButtonSegment(value: 0, label: Text('Журнал')),
           ButtonSegment(value: 1, label: Text('План')),
         ],
         selected: {_tab},
         showSelectedIcon: false,
-        style: const ButtonStyle(visualDensity: VisualDensity.compact),
+        style: ButtonStyle(visualDensity: VisualDensity.compact),
         onSelectionChanged: (s) => setState(() => _tab = s.first),
       ),
       child: _tab == 0 ? _logView(context) : _planView(context),
@@ -93,12 +93,12 @@ class _WorkoutsModuleState extends State<WorkoutsModule> {
     final planField = DropdownButtonFormField<String>(
       value: _planId,
       isExpanded: true,
-      decoration: const InputDecoration(labelText: 'Тренировка'),
+      decoration: InputDecoration(labelText: 'Тренировка'),
       dropdownColor: C.surface2,
       items: [
         for (final p in plans)
           DropdownMenuItem(value: str(p, 'id'), child: Text(str(p, 'name'), overflow: TextOverflow.ellipsis)),
-        const DropdownMenuItem(value: _free, child: Text('Другое / свободная')),
+        DropdownMenuItem(value: _free, child: Text('Другое / свободная')),
       ],
       onChanged: (v) => setState(() {
         _planId = v;
@@ -117,7 +117,7 @@ class _WorkoutsModuleState extends State<WorkoutsModule> {
               child: Tooltip(
                 message: human(ds) + (days.contains(ds) ? ': тренировка' : ''),
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                  margin: EdgeInsets.symmetric(horizontal: 1.5),
                   height: 24,
                   decoration: BoxDecoration(
                     color: days.contains(ds) ? C.workout : C.surface2,
@@ -129,33 +129,33 @@ class _WorkoutsModuleState extends State<WorkoutsModule> {
             );
           }),
         ),
-        const SizedBox(height: 4),
-        const Row(
+        SizedBox(height: 4),
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('4 недели назад', style: TextStyle(fontSize: 11, color: C.faint)),
             Text('сегодня', style: TextStyle(fontSize: 11, color: C.faint)),
           ],
         ),
-        const SizedBox(height: 14),
+        SizedBox(height: 14),
         LayoutBuilder(builder: (context, c) {
           if (c.maxWidth < 420) {
-            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [dateField, const SizedBox(height: 10), planField]);
+            return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [dateField, SizedBox(height: 10), planField]);
           }
           return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             SizedBox(width: 170, child: dateField),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Expanded(child: planField),
           ]);
         }),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         TextField(
           controller: _note,
           maxLength: 500,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(labelText: 'Заметка', hintText: 'Веса, самочувствие, что получилось', counterText: ''),
+          decoration: InputDecoration(labelText: 'Заметка', hintText: 'Веса, самочувствие, что получилось', counterText: ''),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Align(
           alignment: Alignment.centerLeft,
           child: FilledButton(
@@ -174,13 +174,13 @@ class _WorkoutsModuleState extends State<WorkoutsModule> {
               _note.clear();
               toast(context, 'Тренировка отмечена');
             },
-            child: const Text('Отметить тренировку'),
+            child: Text('Отметить тренировку'),
           ),
         ),
-        const SizedBox(height: 18),
-        const SectionLabel('История'),
-        const SizedBox(height: 8),
-        if (logs.isEmpty) const EmptyNote('Тренировок пока нет. Выберите дату и тип, нажмите «Отметить тренировку».'),
+        SizedBox(height: 18),
+        SectionLabel('История'),
+        SizedBox(height: 8),
+        if (logs.isEmpty) EmptyNote('Тренировок пока нет. Выберите дату и тип, нажмите «Отметить тренировку».'),
         for (final l in logs.take(_showLogs)) _LogRow(log: l),
         if (logs.length > _showLogs)
           TextButton(onPressed: () => setState(() => _showLogs += 30), child: Text('Показать ещё (${logs.length - _showLogs})')),
@@ -223,36 +223,36 @@ class _WorkoutsModuleState extends State<WorkoutsModule> {
           controller: _pName,
           maxLength: 80,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(labelText: 'Название тренировки', hintText: 'Например, Верх тела', counterText: ''),
+          decoration: InputDecoration(labelText: 'Название тренировки', hintText: 'Например, Верх тела', counterText: ''),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         TextField(
           controller: _pEx,
           minLines: 3,
           maxLines: 10,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Упражнения, каждое с новой строки',
             hintText: 'Жим лёжа 4×8\nТяга штанги в наклоне 4×10\nОтжимания на брусьях 3×12',
             alignLabelWithHint: true,
           ),
         ),
         if (_pError != null) ...[
-          const SizedBox(height: 8),
-          Text(_pError!, style: const TextStyle(color: C.overdue, fontSize: 13)),
+          SizedBox(height: 8),
+          Text(_pError!, style: TextStyle(color: C.overdue, fontSize: 13)),
         ],
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Wrap(spacing: 10, runSpacing: 10, children: [
           FilledButton(
             style: tealButton(),
             onPressed: () => _savePlan(context),
             child: Text(_editingPlan == null ? 'Сохранить в план' : 'Сохранить изменения'),
           ),
-          if (_editingPlan != null) OutlinedButton(onPressed: _resetPlanForm, child: const Text('Отмена')),
+          if (_editingPlan != null) OutlinedButton(onPressed: _resetPlanForm, child: Text('Отмена')),
         ]),
-        const SizedBox(height: 18),
-        const SectionLabel('Мой план'),
-        const SizedBox(height: 8),
-        if (plans.isEmpty) const EmptyNote('Опишите свои тренировки: название и упражнения. Потом их можно выбирать в журнале.'),
+        SizedBox(height: 18),
+        SectionLabel('Мой план'),
+        SizedBox(height: 8),
+        if (plans.isEmpty) EmptyNote('Опишите свои тренировки: название и упражнения. Потом их можно выбирать в журнале.'),
         for (final p in plans)
           _PlanCard(
             plan: p,
@@ -287,8 +287,8 @@ class _LogRow extends StatelessWidget {
     final d = parseYmd(str(log, 'date'));
     final note = str(log, 'note');
     return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+      margin: EdgeInsets.only(bottom: 6),
+      padding: EdgeInsets.fromLTRB(12, 10, 4, 10),
       decoration: BoxDecoration(color: C.surface2, borderRadius: BorderRadius.circular(10)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,18 +296,18 @@ class _LogRow extends StatelessWidget {
           SizedBox(
             width: 64,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('${two(d.day)}.${two(d.month)}', style: const TextStyle(color: C.workout, fontSize: 13, fontFeatures: tabular)),
-              Text(weekdaysShort[d.weekday - 1], style: const TextStyle(color: C.faint, fontSize: 11.5)),
+              Text('${two(d.day)}.${two(d.month)}', style: TextStyle(color: C.workout, fontSize: 13, fontFeatures: tabular)),
+              Text(weekdaysShort[d.weekday - 1], style: TextStyle(color: C.faint, fontSize: 11.5)),
             ]),
           ),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(store.planName(log), style: const TextStyle(fontWeight: FontWeight.w600)),
-              if (note.isNotEmpty) Text(note, style: const TextStyle(fontSize: 13, color: C.muted)),
+              Text(store.planName(log), style: TextStyle(fontWeight: FontWeight.w600)),
+              if (note.isNotEmpty) Text(note, style: TextStyle(fontSize: 13, color: C.muted)),
             ]),
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 18, color: C.faint),
+            icon: Icon(Icons.close, size: 18, color: C.faint),
             tooltip: 'Удалить',
             onPressed: () async {
               if (await confirmDialog(context, 'Удалить запись о тренировке?')) store.remove(str(log, 'id'));
@@ -330,7 +330,7 @@ class _PlanCard extends StatelessWidget {
     final store = StoreScope.read(context);
     final ex = str(plan, 'exercises').split('\n').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Container(
@@ -342,15 +342,15 @@ class _PlanCard extends StatelessWidget {
                 Container(width: 3, color: C.workout),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 8, 4, 12),
+                    padding: EdgeInsets.fromLTRB(14, 8, 4, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(children: [
-                          Expanded(child: Text(str(plan, 'name'), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15))),
-                          IconButton(icon: const Icon(Icons.edit_outlined, size: 18, color: C.muted), tooltip: 'Изменить', onPressed: onEdit),
+                          Expanded(child: Text(str(plan, 'name'), style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15))),
+                          IconButton(icon: Icon(Icons.edit_outlined, size: 18, color: C.muted), tooltip: 'Изменить', onPressed: onEdit),
                           IconButton(
-                            icon: const Icon(Icons.close, size: 18, color: C.faint),
+                            icon: Icon(Icons.close, size: 18, color: C.faint),
                             tooltip: 'Удалить',
                             onPressed: () async {
                               if (await confirmDialog(context, 'Удалить тренировку из плана?', body: str(plan, 'name'))) {
@@ -359,16 +359,16 @@ class _PlanCard extends StatelessWidget {
                             },
                           ),
                         ]),
-                        if (ex.isEmpty) const Hint('Без упражнений'),
+                        if (ex.isEmpty) Hint('Без упражнений'),
                         for (var i = 0; i < ex.length; i++)
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 2),
-                            child: Text('${i + 1}. ${ex[i]}', style: const TextStyle(fontSize: 13.5, color: C.muted)),
+                            padding: EdgeInsets.only(bottom: 2),
+                            child: Text('${i + 1}. ${ex[i]}', style: TextStyle(fontSize: 13.5, color: C.muted)),
                           ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: 6),
                         Text(
                           lastDate == null ? 'ещё не выполнялась' : 'последняя: ${rel(lastDate!)}',
-                          style: const TextStyle(fontSize: 11.5, color: C.faint),
+                          style: TextStyle(fontSize: 11.5, color: C.faint),
                         ),
                       ],
                     ),

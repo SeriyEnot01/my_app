@@ -11,6 +11,7 @@ import 'mascot.dart';
 import 'notes.dart';
 import 'reminders.dart';
 import 'routine.dart';
+import 'schedule.dart';
 import 'stats.dart';
 import 'today.dart';
 import 'upcoming.dart';
@@ -54,7 +55,7 @@ final List<AppModule> allModules = [
     description: 'Добавление задачи с дедлайном и описанием',
     icon: Icons.add_task,
     core: true,
-    builder: () => const AddTaskModule(),
+    builder: () => AddTaskModule(),
   ),
   AppModule(
     id: 'today',
@@ -62,7 +63,7 @@ final List<AppModule> allModules = [
     description: 'Задачи с дедлайном на сегодня и просроченные',
     icon: Icons.today,
     core: true,
-    builder: () => const TodayModule(),
+    builder: () => TodayModule(),
   ),
   AppModule(
     id: 'upcoming',
@@ -70,7 +71,7 @@ final List<AppModule> allModules = [
     description: 'Задачи на завтра, послезавтра и следующий день',
     icon: Icons.upcoming,
     core: true,
-    builder: () => const UpcomingModule(),
+    builder: () => UpcomingModule(),
   ),
   AppModule(
     id: 'calendar',
@@ -78,49 +79,56 @@ final List<AppModule> allModules = [
     description: 'Месяц с цветными отметками дедлайнов и тренировок',
     icon: Icons.calendar_month,
     core: true,
-    builder: () => const CalendarModule(),
+    builder: () => CalendarModule(),
+  ),
+  AppModule(
+    id: 'schedule',
+    title: 'Расписание',
+    description: 'По часам на неделю: пары, встречи, дела; чётные и нечётные недели',
+    icon: Icons.view_timeline_outlined,
+    builder: () => ScheduleModule(),
   ),
   AppModule(
     id: 'stats',
     title: 'Сводка',
     description: 'Сколько задач сегодня, на 3 дня, просрочено и тренировок за месяц',
     icon: Icons.insights,
-    builder: () => const StatsModule(),
+    builder: () => StatsModule(),
   ),
   AppModule(
     id: 'all_tasks',
     title: 'Все задачи',
     description: 'Полный список задач',
     icon: Icons.list_alt,
-    builder: () => const AllTasksModule(),
+    builder: () => AllTasksModule(),
   ),
   AppModule(
     id: 'workouts',
     title: 'Тренировки',
     description: 'План тренировок и журнал по датам',
     icon: Icons.fitness_center,
-    builder: () => const WorkoutsModule(),
+    builder: () => WorkoutsModule(),
   ),
   AppModule(
     id: 'routine',
     title: 'Утренняя рутина',
     description: 'Список дел на каждое утро: отмечайте шаги, серия дней подряд',
     icon: Icons.wb_twilight,
-    builder: () => const RoutineModule(),
+    builder: () => RoutineModule(),
   ),
   AppModule(
     id: 'notes',
     title: 'Заметки',
     description: 'Быстрые заметки без даты, как «Избранное» в Telegram',
     icon: Icons.sticky_note_2_outlined,
-    builder: () => const NotesModule(),
+    builder: () => NotesModule(),
   ),
   AppModule(
     id: 'mascot',
     title: 'Талисман',
     description: 'Ваша гифка и подбадривающие сообщения',
     icon: Icons.emoji_emotions_outlined,
-    builder: () => const MascotModule(),
+    builder: () => MascotModule(),
   ),
   AppModule(
     id: 'reminders',
@@ -128,14 +136,14 @@ final List<AppModule> allModules = [
     description: 'Уведомления в день дедлайна',
     icon: Icons.notifications_active_outlined,
     androidOnly: true,
-    builder: () => const RemindersModule(),
+    builder: () => RemindersModule(),
   ),
   AppModule(
     id: 'backup',
     title: 'Резервная копия',
     description: 'Сохранение задач в файл и загрузка из файла',
     icon: Icons.save_alt,
-    builder: () => const BackupModule(),
+    builder: () => BackupModule(),
   ),
 ];
 

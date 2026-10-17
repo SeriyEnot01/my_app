@@ -22,7 +22,7 @@ class TodayModule extends StatelessWidget {
       tone: C.deadline,
       count: left,
       child: list.isEmpty
-          ? const EmptyNote('На сегодня дедлайнов нет. Добавьте задачу, и она появится здесь в день дедлайна.')
+          ? EmptyNote('На сегодня дедлайнов нет. Добавьте задачу, и она появится здесь в день дедлайна.')
           : Column(children: [for (final t in list) TaskTile(key: ValueKey(t['id']), task: t)]),
     );
   }

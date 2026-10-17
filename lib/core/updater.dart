@@ -120,7 +120,7 @@ class Updater extends ChangeNotifier {
       final can = await _channel.invokeMethod<bool>('canInstall') ?? true;
       if (!can) {
         await _channel.invokeMethod<void>('openInstallSettings');
-        _say('Разрешите Задачнику «Установку неизвестных приложений», вернитесь и нажмите «Обновить» ещё раз.');
+        _say('Разрешите приложению workflows «Установку неизвестных приложений», вернитесь и нажмите «Обновить» ещё раз.');
         return;
       }
     }
@@ -132,7 +132,7 @@ class Updater extends ChangeNotifier {
       final tmp = await getTemporaryDirectory();
       final dir = Directory('${tmp.path}${Platform.pathSeparator}updates');
       await dir.create(recursive: true);
-      final file = File('${dir.path}${Platform.pathSeparator}${Platform.isAndroid ? 'zadachnik-update.apk' : 'Zadachnik-Setup.exe'}');
+      final file = File('${dir.path}${Platform.pathSeparator}${Platform.isAndroid ? 'workflows-update.apk' : 'workflows-Setup.exe'}');
       if (await file.exists()) await file.delete();
 
       final req = await client.getUrl(Uri.parse(rel.url));

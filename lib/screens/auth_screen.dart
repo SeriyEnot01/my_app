@@ -88,6 +88,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ThemeScope.of(context);
     final store = StoreScope.of(context);
     final lead = store.authHint.isNotEmpty
         ? store.authHint
@@ -98,11 +99,11 @@ class _AuthScreenState extends State<AuthScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: BoxConstraints(maxWidth: 420),
               child: Container(
-                padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
+                padding: EdgeInsets.fromLTRB(22, 26, 22, 22),
                 decoration: BoxDecoration(
                   color: C.surface,
                   borderRadius: BorderRadius.circular(22),
@@ -112,67 +113,67 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Row(children: [Dot(C.deadline, size: 10), SizedBox(width: 6), Dot(C.workout, size: 10), SizedBox(width: 6), Dot(C.faint, size: 10)]),
-                      const SizedBox(height: 14),
+                      Row(children: [Dot(C.deadline, size: 10), SizedBox(width: 6), Dot(C.workout, size: 10), SizedBox(width: 6), Dot(C.faint, size: 10)]),
+                      SizedBox(height: 14),
                       Text(_register ? 'Создать аккаунт' : 'Вход', style: display(24, weight: FontWeight.w700)),
-                      const SizedBox(height: 6),
-                      Text(lead, style: const TextStyle(color: C.muted, fontSize: 14)),
-                      const SizedBox(height: 18),
+                      SizedBox(height: 6),
+                      Text(lead, style: TextStyle(color: C.muted, fontSize: 14)),
+                      SizedBox(height: 18),
                       TextField(
                         controller: _email,
                         keyboardType: TextInputType.emailAddress,
                         autocorrect: false,
                         enableSuggestions: false,
-                        autofillHints: const [AutofillHints.email, AutofillHints.username],
-                        decoration: const InputDecoration(labelText: 'Почта'),
+                        autofillHints: [AutofillHints.email, AutofillHints.username],
+                        decoration: InputDecoration(labelText: 'Почта'),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: 12),
                       TextField(
                         controller: _pw,
                         obscureText: !_show,
                         autocorrect: false,
                         enableSuggestions: false,
                         autofillHints: [_register ? AutofillHints.newPassword : AutofillHints.password],
-                        decoration: const InputDecoration(labelText: 'Пароль'),
+                        decoration: InputDecoration(labelText: 'Пароль'),
                         onSubmitted: (_) => _register ? null : _submit(),
                       ),
                       if (_register) ...[
-                        const SizedBox(height: 12),
+                        SizedBox(height: 12),
                         TextField(
                           controller: _pw2,
                           obscureText: !_show,
                           autocorrect: false,
                           enableSuggestions: false,
-                          decoration: const InputDecoration(labelText: 'Повторите пароль'),
+                          decoration: InputDecoration(labelText: 'Повторите пароль'),
                         ),
                       ],
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Row(children: [
                         Checkbox(value: _show, onChanged: (v) => setState(() => _show = v ?? false)),
                         GestureDetector(
                           onTap: () => setState(() => _show = !_show),
-                          child: const Text('Показать пароль', style: TextStyle(color: C.muted)),
+                          child: Text('Показать пароль', style: TextStyle(color: C.muted)),
                         ),
                       ]),
                       if (_error != null) Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Text(_error!, style: const TextStyle(color: C.overdue, fontSize: 13.5)),
+                        padding: EdgeInsets.only(bottom: 10),
+                        child: Text(_error!, style: TextStyle(color: C.overdue, fontSize: 13.5)),
                       ),
                       if (_info != null) Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Text(_info!, style: const TextStyle(color: C.workout, fontSize: 13.5)),
+                        padding: EdgeInsets.only(bottom: 10),
+                        child: Text(_info!, style: TextStyle(color: C.workout, fontSize: 13.5)),
                       ),
                       FilledButton(
                         onPressed: _busy ? null : _submit,
                         child: _busy
-                            ? const Row(mainAxisSize: MainAxisSize.min, children: [
+                            ? Row(mainAxisSize: MainAxisSize.min, children: [
                                 SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: C.accentInk)),
                                 SizedBox(width: 10),
                                 Text('Вычисляем ключ шифрования…'),
                               ])
                             : Text(_register ? 'Создать аккаунт' : 'Войти'),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: 6),
                       TextButton(
                         onPressed: _busy
                             ? null
@@ -183,8 +184,8 @@ class _AuthScreenState extends State<AuthScreen> {
                                 }),
                         child: Text(_register ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Создать'),
                       ),
-                      const SizedBox(height: 6),
-                      const Text.rich(
+                      SizedBox(height: 6),
+                      Text.rich(
                         TextSpan(children: [
                           TextSpan(text: 'Пароль нельзя восстановить. ', style: TextStyle(fontWeight: FontWeight.w600, color: C.muted)),
                           TextSpan(text: 'Им шифруются задачи, и без него их не прочитает никто, включая вас. Храните его в менеджере паролей.'),

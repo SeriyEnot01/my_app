@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/dates.dart';
 import '../core/models.dart';
+import '../core/schedule.dart';
 import '../core/scope.dart';
 import '../core/theme.dart';
 import 'common.dart';
@@ -54,17 +55,26 @@ class _HeroHeaderState extends State<HeroHeader> {
     final gym = layout.isOnId('workouts')
         ? store.logs.where((l) => str(l, 'date').compareTo(weekAgo) >= 0 && str(l, 'date').compareTo(today) <= 0).length
         : -1;
+    final next = layout.isOnId('schedule') ? currentOrNext(store.events) : null;
     final h = now.hour;
     final hello = h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
     final progress = total == 0 ? 0.0 : done / total;
 
     final chips = Wrap(spacing: 8, runSpacing: 8, children: [
       if (total == 0)
-        const _Chip(Icons.wb_sunny_outlined, 'Сегодня без дедлайнов', C.workout)
+        _Chip(Icons.wb_sunny_outlined, 'Сегодня без дедлайнов', C.workout)
       else if (done == total)
-        const _Chip(Icons.celebration_outlined, 'Всё на сегодня сделано', C.workout)
+        _Chip(Icons.celebration_outlined, 'Всё на сегодня сделано', C.workout)
       else
         _Chip(Icons.flag_outlined, 'Осталось сегодня: ${total - done}', C.deadline),
+      if (next != null)
+        _Chip(
+          Icons.schedule,
+          next.now
+              ? 'Сейчас: ${str(next.event, 'title')} до ${str(next.event, 'end')}'
+              : 'Далее: ${str(next.event, 'title')} в ${str(next.event, 'start')}',
+          eventColor(next.event),
+        ),
       if (overdue > 0) _Chip(Icons.error_outline, 'Просрочено: $overdue', C.overdue),
       if (soon > 0) _Chip(Icons.upcoming_outlined, 'В ближайшие 3 дня: $soon', C.accent),
       if (streak > 0) _Chip(Icons.local_fire_department_outlined, 'Рутина: $streak ${plural(streak, 'день', 'дня', 'дней')} подряд', C.sun),
@@ -78,8 +88,8 @@ class _HeroHeaderState extends State<HeroHeader> {
       decoration: InputDecoration(
         hintText: 'Быстрая задача на сегодня, Enter — добавить',
         fillColor: C.bg.withOpacity(.55),
-        prefixIcon: const Icon(Icons.bolt, color: C.sun, size: 20),
-        suffixIcon: IconButton(icon: const Icon(Icons.arrow_upward_rounded, size: 20), tooltip: 'Добавить', onPressed: _add),
+        prefixIcon: Icon(Icons.bolt, color: C.sun, size: 20),
+        suffixIcon: IconButton(icon: Icon(Icons.arrow_upward_rounded, size: 20), tooltip: 'Добавить', onPressed: _add),
       ),
     );
 
@@ -97,8 +107,8 @@ class _HeroHeaderState extends State<HeroHeader> {
         Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Text(total == 0 ? '—' : '$done/$total', style: display(widget.wide ? 26 : 19, weight: FontWeight.w700)),
-            const SizedBox(height: 2),
-            const Text('сегодня', style: TextStyle(fontSize: 11.5, color: C.muted)),
+            SizedBox(height: 2),
+            Text('сегодня', style: TextStyle(fontSize: 11.5, color: C.muted)),
           ]),
         ),
       ]),
@@ -106,10 +116,10 @@ class _HeroHeaderState extends State<HeroHeader> {
 
     final greeting = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(hello, style: display(widget.wide ? 32 : 24, weight: FontWeight.w700)),
-      const SizedBox(height: 6),
+      SizedBox(height: 6),
       Text(
         '${now.day} ${monthsGen[now.month - 1]}, ${weekdaysFull[now.weekday]}',
-        style: const TextStyle(color: C.muted, fontSize: 15),
+        style: TextStyle(color: C.muted, fontSize: 15),
       ),
     ]);
 
@@ -117,16 +127,16 @@ class _HeroHeaderState extends State<HeroHeader> {
       padding: EdgeInsets.all(widget.wide ? 26 : 18),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(26),
-        gradient: const LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF262C58), Color(0xFF1A1D2D), Color(0xFF15302E)],
+          colors: [for (final c in C.p.hero) C.glass ? c.withOpacity(.80) : c],
           stops: [0, .55, 1],
         ),
         border: Border.all(color: Colors.white.withOpacity(.08)),
         boxShadow: [
-          BoxShadow(color: C.accent.withOpacity(.10), blurRadius: 40, offset: const Offset(0, 16)),
-          BoxShadow(color: Colors.black.withOpacity(.35), blurRadius: 30, offset: const Offset(0, 14)),
+          BoxShadow(color: C.accent.withOpacity(.10), blurRadius: 40, offset: Offset(0, 16)),
+          BoxShadow(color: Colors.black.withOpacity(.35), blurRadius: 30, offset: Offset(0, 14)),
         ],
       ),
       child: widget.wide
@@ -134,21 +144,21 @@ class _HeroHeaderState extends State<HeroHeader> {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   greeting,
-                  const SizedBox(height: 18),
+                  SizedBox(height: 18),
                   chips,
-                  const SizedBox(height: 18),
-                  ConstrainedBox(constraints: const BoxConstraints(maxWidth: 560), child: quick),
+                  SizedBox(height: 18),
+                  ConstrainedBox(constraints: BoxConstraints(maxWidth: 560), child: quick),
                 ]),
               ),
-              const SizedBox(width: 28),
+              SizedBox(width: 28),
               ring,
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
             ])
           : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Row(children: [Expanded(child: greeting), const SizedBox(width: 12), ring]),
-              const SizedBox(height: 14),
+              Row(children: [Expanded(child: greeting), SizedBox(width: 12), ring]),
+              SizedBox(height: 14),
               chips,
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               quick,
             ]),
     );
@@ -163,7 +173,7 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: 11, vertical: 6),
         decoration: BoxDecoration(
           color: color.withOpacity(.12),
           borderRadius: BorderRadius.circular(999),
@@ -171,7 +181,7 @@ class _Chip extends StatelessWidget {
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(icon, size: 15, color: color),
-          const SizedBox(width: 6),
+          SizedBox(width: 6),
           Text(label, style: TextStyle(fontSize: 12.5, color: Color.lerp(color, C.fg, .35), fontWeight: FontWeight.w500)),
         ]),
       );

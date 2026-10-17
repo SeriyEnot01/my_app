@@ -72,14 +72,14 @@ class _CalendarModuleState extends State<CalendarModule> {
           });
           store.selectDay(today);
         },
-        child: const Text('Сегодня'),
+        child: Text('Сегодня'),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              IconButton(onPressed: () => _shift(-1), icon: const Icon(Icons.chevron_left), tooltip: 'Предыдущий месяц'),
+              IconButton(onPressed: () => _shift(-1), icon: Icon(Icons.chevron_left), tooltip: 'Предыдущий месяц'),
               Expanded(
                 child: Text(
                   '${monthsNom[_month - 1]} $_year',
@@ -87,10 +87,10 @@ class _CalendarModuleState extends State<CalendarModule> {
                   style: display(16),
                 ),
               ),
-              IconButton(onPressed: () => _shift(1), icon: const Icon(Icons.chevron_right), tooltip: 'Следующий месяц'),
+              IconButton(onPressed: () => _shift(1), icon: Icon(Icons.chevron_right), tooltip: 'Следующий месяц'),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Row(
             children: List.generate(
               7,
@@ -104,7 +104,7 @@ class _CalendarModuleState extends State<CalendarModule> {
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           for (var w = 0; w < weeks; w++)
             Row(
               children: List.generate(7, (i) {
@@ -112,13 +112,13 @@ class _CalendarModuleState extends State<CalendarModule> {
                 final ds = ymd(d);
                 return Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.all(2.5),
+                    padding: EdgeInsets.all(2.5),
                     child: _DayCell(
                       date: d,
                       inMonth: d.month == _month,
                       isToday: ds == today,
                       selected: ds == store.selectedDay,
-                      marks: marks[ds] ?? const [],
+                      marks: marks[ds] ?? [],
                       onTap: () {
                         store.selectDay(ds);
                         if (d.month != _month) {
@@ -133,18 +133,18 @@ class _CalendarModuleState extends State<CalendarModule> {
                 );
               }),
             ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Wrap(
             spacing: 14,
             runSpacing: 6,
             children: [
-              const _Legend(C.deadline, 'Дедлайн'),
-              const _Legend(C.overdue, 'Просрочено'),
-              const _Legend(C.faint, 'Выполнено'),
-              if (showGym) const _Legend(C.workout, 'Тренировка'),
+              _Legend(C.deadline, 'Дедлайн'),
+              _Legend(C.overdue, 'Просрочено'),
+              _Legend(C.faint, 'Выполнено'),
+              if (showGym) _Legend(C.workout, 'Тренировка'),
             ],
           ),
-          const Divider(height: 28),
+          Divider(height: 28),
           _DayDetails(day: store.selectedDay, showGym: showGym),
         ],
       ),
@@ -160,8 +160,8 @@ class _Legend extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
         Dot(color),
-        const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 12.5, color: C.muted)),
+        SizedBox(width: 6),
+        Text(label, style: TextStyle(fontSize: 12.5, color: C.muted)),
       ]);
 }
 
@@ -224,9 +224,9 @@ class _DayCell extends StatelessWidget {
                     runSpacing: 3,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      for (final m in shown) Dot(selected && m == C.faint ? const Color(0xFF9A9CAB) : m, size: small ? 5 : 7),
+                      for (final m in shown) Dot(selected && m == C.faint ? Color(0xFF9A9CAB) : m, size: small ? 5 : 7),
                       if (marks.length > 4)
-                        Text('+${marks.length - 4}', style: TextStyle(fontSize: 9, color: selected ? const Color(0xFF555555) : C.muted)),
+                        Text('+${marks.length - 4}', style: TextStyle(fontSize: 9, color: selected ? Color(0xFF555555) : C.muted)),
                     ],
                   ),
                 ),
@@ -258,24 +258,24 @@ class _DayDetails extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Text(humanFull(day), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              padding: EdgeInsets.only(right: 8),
+              child: Text(humanFull(day), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
             ),
             OutlinedButton.icon(
               onPressed: () => store.prefillTask(day),
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Задача'),
+              icon: Icon(Icons.add, size: 18),
+              label: Text('Задача'),
             ),
             if (showGym)
               OutlinedButton.icon(
                 onPressed: () => store.prefillWorkout(day),
-                icon: const Icon(Icons.fitness_center, size: 18),
-                label: const Text('Тренировка'),
+                icon: Icon(Icons.fitness_center, size: 18),
+                label: Text('Тренировка'),
               ),
           ],
         ),
-        const SizedBox(height: 10),
-        if (tasks.isEmpty && logs.isEmpty) const Hint('В этот день ничего не запланировано.'),
+        SizedBox(height: 10),
+        if (tasks.isEmpty && logs.isEmpty) Hint('В этот день ничего не запланировано.'),
         for (final t in tasks)
           _MiniRow(
             color: isDone(t) ? C.faint : (isOverdue(t) ? C.overdue : C.deadline),
@@ -300,7 +300,7 @@ class _MiniRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
+        padding: EdgeInsets.only(bottom: 6),
         child: Material(
           color: C.surface2,
           borderRadius: BorderRadius.circular(10),
@@ -308,12 +308,12 @@ class _MiniRow extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(padding: const EdgeInsets.only(top: 6), child: Dot(color)),
-                  const SizedBox(width: 10),
+                  Padding(padding: EdgeInsets.only(top: 6), child: Dot(color)),
+                  SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,7 +326,7 @@ class _MiniRow extends StatelessWidget {
                             decorationColor: C.faint,
                           ),
                         ),
-                        if (sub.isNotEmpty) Text(sub, style: const TextStyle(fontSize: 12.5, color: C.muted)),
+                        if (sub.isNotEmpty) Text(sub, style: TextStyle(fontSize: 12.5, color: C.muted)),
                       ],
                     ),
                   ),

@@ -11,7 +11,7 @@ class RemindersModule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!Reminders.supported) {
-      return const Panel(title: 'Напоминания', child: Hint('Напоминания приходят только в Android-версии приложения.'));
+      return Panel(title: 'Напоминания', child: Hint('Напоминания приходят только в Android-версии приложения.'));
     }
     final rc = ReminderScope.of(context);
     return Panel(
@@ -25,20 +25,20 @@ class RemindersModule extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             value: rc.enabled,
             activeColor: C.accent,
-            title: const Text('Напоминать в день дедлайна'),
+            title: Text('Напоминать в день дедлайна'),
             subtitle: Text(
               rc.enabled ? 'Запланировано уведомлений: ${rc.scheduled}' : 'Уведомление придёт, даже если приложение закрыто',
-              style: const TextStyle(color: C.muted, fontSize: 13),
+              style: TextStyle(color: C.muted, fontSize: 13),
             ),
             onChanged: (v) async {
               final ok = await rc.setEnabled(v);
               if (!ok && context.mounted) {
-                toast(context, 'Разрешите уведомления для Задачника в настройках телефона.');
+                toast(context, 'Разрешите уведомления для workflows в настройках телефона.');
               }
             },
           ),
           if (rc.enabled) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             SizedBox(
               width: 240,
               child: PickerField(
@@ -51,16 +51,16 @@ class RemindersModule extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 10),
-            const Hint('Если у задачи указано время, напоминание придёт за час до него.'),
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
+            Hint('Если у задачи указано время, напоминание придёт за час до него.'),
+            SizedBox(height: 10),
             Align(
               alignment: Alignment.centerLeft,
-              child: OutlinedButton(onPressed: Reminders.showTest, child: const Text('Проверить')),
+              child: OutlinedButton(onPressed: Reminders.showTest, child: Text('Проверить')),
             ),
           ],
-          const SizedBox(height: 10),
-          const Hint('Задачи, добавленные на компьютере, попадут в напоминания после того, как вы откроете приложение на телефоне.'),
+          SizedBox(height: 10),
+          Hint('Задачи, добавленные на компьютере, попадут в напоминания после того, как вы откроете приложение на телефоне.'),
         ],
       ),
     );

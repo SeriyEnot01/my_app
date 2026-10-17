@@ -12,7 +12,7 @@ class LayoutController extends ChangeNotifier {
   final SharedPreferences _prefs;
   static const _orderKey = 'layout.order';
   static const _enabledKey = 'layout.enabled';
-  static const defaultOn = {'stats', 'all_tasks', 'workouts', 'routine', 'notes'};
+  static const defaultOn = {'schedule', 'stats', 'all_tasks', 'workouts', 'routine', 'notes'};
 
   List<String> order = [];
   Set<String> enabled = {};

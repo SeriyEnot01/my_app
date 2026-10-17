@@ -11,7 +11,7 @@ import '../core/scope.dart';
 import '../core/theme.dart';
 import '../widgets/common.dart';
 
-const _kinds = ['task', 'plan', 'log', 'note', 'routine_item', 'routine_day'];
+const _kinds = ['task', 'plan', 'log', 'note', 'routine_item', 'routine_day', 'event'];
 
 /// Same file format as the web version: {app, version, exported, items: [...]}.
 class BackupModule extends StatefulWidget {
@@ -32,7 +32,7 @@ class _BackupModuleState extends State<BackupModule> {
 
   Future<void> _export() async {
     final store = StoreScope.read(context);
-    final json = const JsonEncoder.withIndent(' ').convert({
+    final json = JsonEncoder.withIndent(' ').convert({
       'app': 'zadachnik',
       'version': 1,
       'exported': DateTime.now().toUtc().toIso8601String(),
@@ -71,7 +71,7 @@ class _BackupModuleState extends State<BackupModule> {
       final bytes = f.bytes ?? (f.path != null ? await File(f.path!).readAsBytes() : null);
       if (bytes == null) return;
       final data = jsonDecode(utf8.decode(bytes));
-      final list = (data is Map && data['items'] is List) ? data['items'] as List : const [];
+      final list = (data is Map && data['items'] is List) ? data['items'] as List : [];
       var added = 0, updated = 0;
       for (final raw in list) {
         if (raw is! Map) continue;
@@ -104,17 +104,17 @@ class _BackupModuleState extends State<BackupModule> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Hint(
+          Hint(
             'Сохраните все задачи и тренировки в файл. Его можно загрузить в это приложение или на сайт: записи объединятся, дубликатов не будет.',
             color: C.muted,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Wrap(spacing: 10, runSpacing: 10, children: [
-            OutlinedButton.icon(onPressed: _export, icon: const Icon(Icons.save_alt, size: 18), label: const Text('Сохранить в файл')),
-            OutlinedButton.icon(onPressed: _import, icon: const Icon(Icons.upload_file, size: 18), label: const Text('Загрузить из файла')),
+            OutlinedButton.icon(onPressed: _export, icon: Icon(Icons.save_alt, size: 18), label: Text('Сохранить в файл')),
+            OutlinedButton.icon(onPressed: _import, icon: Icon(Icons.upload_file, size: 18), label: Text('Загрузить из файла')),
           ]),
           if (_msg.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            SizedBox(height: 10),
             Text(_msg, style: TextStyle(color: _error ? C.overdue : C.muted, fontSize: 13)),
           ],
         ],

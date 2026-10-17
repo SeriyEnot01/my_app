@@ -95,9 +95,9 @@ class _TaskFormState extends State<TaskForm> {
           maxLength: 200,
           textInputAction: TextInputAction.next,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(labelText: 'Задача', hintText: 'Например, сдать отчёт по проекту', counterText: ''),
+          decoration: InputDecoration(labelText: 'Задача', hintText: 'Например, сдать отчёт по проекту', counterText: ''),
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         Row(
           children: [
             Expanded(
@@ -108,7 +108,7 @@ class _TaskFormState extends State<TaskForm> {
                 onTap: _pickDate,
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             SizedBox(
               width: 132,
               child: PickerField(
@@ -121,20 +121,20 @@ class _TaskFormState extends State<TaskForm> {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: 10),
         TextField(
           controller: _desc,
           minLines: 2,
           maxLines: 6,
           maxLength: 2000,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(labelText: 'Описание', hintText: 'Детали, ссылки, что нужно подготовить', counterText: ''),
+          decoration: InputDecoration(labelText: 'Описание', hintText: 'Детали, ссылки, что нужно подготовить', counterText: ''),
         ),
         if (_error != null) ...[
-          const SizedBox(height: 8),
-          Text(_error!, style: const TextStyle(color: C.overdue, fontSize: 13)),
+          SizedBox(height: 8),
+          Text(_error!, style: TextStyle(color: C.overdue, fontSize: 13)),
         ],
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         Align(
           alignment: Alignment.centerLeft,
           child: FilledButton(onPressed: _submit, child: Text(widget.submitLabel)),
@@ -153,13 +153,13 @@ Future<void> showTaskEditor(BuildContext context, Item task) {
     builder: (ctx) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        padding: EdgeInsets.fromLTRB(20, 0, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Изменить задачу', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 16),
+            Text('Изменить задачу', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            SizedBox(height: 16),
             TaskForm(
               initial: task,
               submitLabel: 'Сохранить',
@@ -201,7 +201,7 @@ class TaskTile extends StatelessWidget {
                 ? C.deadline
                 : C.accent.withOpacity(.75);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: 8),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(13),
         child: Material(
@@ -213,7 +213,7 @@ class TaskTile extends StatelessWidget {
                 child: InkWell(
         onTap: () => showTaskEditor(context, task),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 4, 2, 10),
+          padding: EdgeInsets.fromLTRB(4, 4, 2, 10),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -225,7 +225,7 @@ class TaskTile extends StatelessWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 11),
+                  padding: EdgeInsets.only(top: 11),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -239,11 +239,11 @@ class TaskTile extends StatelessWidget {
                         ),
                       ),
                       if (desc.isNotEmpty) ...[
-                        const SizedBox(height: 3),
+                        SizedBox(height: 3),
                         Text(desc, style: TextStyle(fontSize: 13.5, color: done ? C.faint : C.muted)),
                       ],
                       if (chips.isNotEmpty) ...[
-                        const SizedBox(height: 7),
+                        SizedBox(height: 7),
                         Wrap(spacing: 6, runSpacing: 6, children: chips),
                       ],
                     ],
@@ -251,7 +251,7 @@ class TaskTile extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, size: 18, color: C.faint),
+                icon: Icon(Icons.close, size: 18, color: C.faint),
                 tooltip: 'Удалить',
                 onPressed: () async {
                   if (await confirmDialog(context, 'Удалить задачу?', body: str(task, 'title'))) {

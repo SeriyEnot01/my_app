@@ -52,7 +52,7 @@ class _Tile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+        padding: EdgeInsets.fromLTRB(16, 14, 14, 14),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           gradient: LinearGradient(
@@ -61,7 +61,7 @@ class _Tile extends StatelessWidget {
             colors: [Color.alphaBlend(color.withOpacity(.14), C.surface), C.surface],
           ),
           border: Border.all(color: color.withOpacity(.22)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(.25), blurRadius: 20, offset: const Offset(0, 10))],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(.25), blurRadius: 20, offset: Offset(0, 10))],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,8 +71,8 @@ class _Tile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('$n', style: display(28, weight: FontWeight.w700, color: color == C.muted ? C.fg : color)),
-                  const SizedBox(height: 4),
-                  Text(label, style: const TextStyle(fontSize: 12.5, color: C.muted), maxLines: 2),
+                  SizedBox(height: 4),
+                  Text(label, style: TextStyle(fontSize: 12.5, color: C.muted), maxLines: 2),
                 ],
               ),
             ),

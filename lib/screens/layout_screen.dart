@@ -10,16 +10,17 @@ class LayoutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ThemeScope.of(context);
     final layout = LayoutScope.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Блоки на экране'),
-        actions: [TextButton(onPressed: layout.reset, child: const Text('Сбросить'))],
+        title: Text('Блоки на экране'),
+        actions: [TextButton(onPressed: layout.reset, child: Text('Сбросить'))],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.fromLTRB(16, 4, 16, 12),
             child: Text(
               'Отметьте нужные блоки и перетащите их за ручку справа, чтобы поменять порядок. '
@@ -30,7 +31,7 @@ class LayoutScreen extends StatelessWidget {
           Expanded(
             child: ReorderableListView.builder(
               buildDefaultDragHandles: false,
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+              padding: EdgeInsets.fromLTRB(12, 0, 12, 24),
               itemCount: layout.order.length,
               onReorder: layout.move,
               itemBuilder: (context, i) {
@@ -39,15 +40,15 @@ class LayoutScreen extends StatelessWidget {
                 final on = layout.isOn(m) && available;
                 return Padding(
                   key: ValueKey(m.id),
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: EdgeInsets.only(bottom: 8),
                   child: Material(
                     color: C.surface,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: C.line)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: BorderSide(color: C.line)),
                     clipBehavior: Clip.antiAlias,
                     child: ListTile(
-                      contentPadding: const EdgeInsets.only(left: 8, right: 4),
+                      contentPadding: EdgeInsets.only(left: 8, right: 4),
                       leading: m.core
-                          ? const Tooltip(
+                          ? Tooltip(
                               message: 'Всегда на экране',
                               child: SizedBox(width: 40, child: Icon(Icons.lock_outline, color: C.faint, size: 20)),
                             )
@@ -57,17 +58,17 @@ class LayoutScreen extends StatelessWidget {
                             ),
                       title: Row(children: [
                         Icon(m.icon, size: 18, color: on ? C.accent : C.muted),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Flexible(child: Text(m.title, style: TextStyle(color: available ? C.fg : C.faint))),
                       ]),
                       subtitle: Text(
                         available ? m.description : '${m.description}. Только в Android-версии.',
-                        style: const TextStyle(color: C.muted, fontSize: 12.5),
+                        style: TextStyle(color: C.muted, fontSize: 12.5),
                       ),
                       onTap: m.core || !available ? null : () => layout.setOn(m.id, !on),
                       trailing: ReorderableDragStartListener(
                         index: i,
-                        child: const Padding(
+                        child: Padding(
                           padding: EdgeInsets.all(10),
                           child: Icon(Icons.drag_handle, color: C.muted),
                         ),
