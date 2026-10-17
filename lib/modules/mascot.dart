@@ -117,7 +117,8 @@ class _MascotModuleState extends State<MascotModule> {
   Widget build(BuildContext context) {
     final store = StoreScope.of(context);
     final h = DateTime.now().hour;
-    final hello = h < 5 ? 'Доброй ночи!' : h < 12 ? 'Доброе утро!' : h < 18 ? 'Добрый день!' : 'Добрый вечер!';
+    final hi = h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
+    final hello = store.userName.isEmpty ? '$hi!' : '$hi, ${store.userName}!';
     final today = todayStr();
     final tasks = store.tasks;
     final todays = tasks.where((t) => str(t, 'due') == today).toList();

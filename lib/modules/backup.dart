@@ -11,7 +11,7 @@ import '../core/scope.dart';
 import '../core/theme.dart';
 import '../widgets/common.dart';
 
-const _kinds = ['task', 'plan', 'log', 'note', 'routine_item', 'routine_day', 'event'];
+const _kinds = ['task', 'plan', 'log', 'note', 'routine_item', 'routine_day', 'event', 'profile'];
 
 /// Same file format as the web version: {app, version, exported, items: [...]}.
 class BackupModule extends StatefulWidget {

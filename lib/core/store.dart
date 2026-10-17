@@ -82,6 +82,21 @@ class AppStore extends ChangeNotifier {
       return p != 0 ? p : _n(b, 'created').compareTo(_n(a, 'created'));
     });
 
+  /// How the user wants to be called: {id: 'profile', kind: 'profile', name}. Synced like everything else.
+  String get userName => str(items['profile'] ?? <String, dynamic>{}, 'name').trim();
+
+  Future<void> setUserName(String name) {
+    final clean = name.trim();
+    final old = items['profile'];
+    return put({
+      ...?old,
+      'id': 'profile',
+      'kind': 'profile',
+      'name': clean.length > 40 ? clean.substring(0, 40) : clean,
+      'created': old?['created'] ?? DateTime.now().millisecondsSinceEpoch,
+    });
+  }
+
   /// Timetable entries (see core/schedule.dart).
   List<Item> get events => _ofKind('event');
 

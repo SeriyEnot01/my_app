@@ -29,6 +29,8 @@ class SettingsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                NamePanel(),
+                SizedBox(height: 16),
                 ThemePicker(),
                 SizedBox(height: 16),
                 BackgroundPanel(),
@@ -382,4 +384,59 @@ class _SliderRow extends StatelessWidget {
         SizedBox(width: 100, child: Text(label, style: TextStyle(color: C.muted, fontSize: 13))),
         Expanded(child: Slider(value: value, max: max, onChanged: onChanged, activeColor: C.accent, inactiveColor: C.line)),
       ]);
+}
+
+/// «Как к вам обращаться»: the name shown in the greeting on the main screen.
+class NamePanel extends StatefulWidget {
+  const NamePanel({super.key});
+
+  @override
+  State<NamePanel> createState() => _NamePanelState();
+}
+
+class _NamePanelState extends State<NamePanel> {
+  late final TextEditingController _name;
+
+  @override
+  void initState() {
+    super.initState();
+    _name = TextEditingController(text: StoreScope.read(context).userName);
+  }
+
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final store = StoreScope.read(context);
+    FocusScope.of(context).unfocus();
+    await store.setUserName(_name.text);
+    if (!mounted) return;
+    toast(context, _name.text.trim().isEmpty ? 'Имя убрано из приветствия' : 'Сохранено');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    StoreScope.of(context);
+    return Panel(
+      title: 'Как к вам обращаться',
+      icon: Icons.waving_hand_outlined,
+      tone: C.sun,
+      child: Row(children: [
+        Expanded(
+          child: TextField(
+            controller: _name,
+            maxLength: 40,
+            textCapitalization: TextCapitalization.words,
+            onSubmitted: (_) => _save(),
+            decoration: InputDecoration(labelText: 'Имя', hintText: 'Например, Аня', counterText: ''),
+          ),
+        ),
+        SizedBox(width: 10),
+        FilledButton(onPressed: _save, child: Text('Сохранить')),
+      ]),
+    );
+  }
 }

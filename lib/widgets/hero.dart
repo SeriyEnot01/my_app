@@ -57,7 +57,8 @@ class _HeroHeaderState extends State<HeroHeader> {
         : -1;
     final next = layout.isOnId('schedule') ? currentOrNext(store.events) : null;
     final h = now.hour;
-    final hello = h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
+    final hi = h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
+    final hello = store.userName.isEmpty ? hi : '$hi, ${store.userName}';
     final progress = total == 0 ? 0.0 : done / total;
 
     final chips = Wrap(spacing: 8, runSpacing: 8, children: [
@@ -115,7 +116,7 @@ class _HeroHeaderState extends State<HeroHeader> {
     );
 
     final greeting = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(hello, style: display(widget.wide ? 32 : 24, weight: FontWeight.w700)),
+      Text(hello, maxLines: 2, overflow: TextOverflow.ellipsis, style: display(widget.wide ? 32 : 24, weight: FontWeight.w700)),
       SizedBox(height: 6),
       Text(
         '${now.day} ${monthsGen[now.month - 1]}, ${weekdaysFull[now.weekday]}',
