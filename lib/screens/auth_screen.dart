@@ -12,10 +12,14 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
+/// Set by GitHub Actions from the repository variable INVITE_ONLY (true = registration needs a code).
+const inviteOnly = bool.fromEnvironment('INVITE_ONLY');
+
 class _AuthScreenState extends State<AuthScreen> {
   final _email = TextEditingController();
   final _pw = TextEditingController();
   final _pw2 = TextEditingController();
+  final _invite = TextEditingController();
   bool _register = false;
   bool _show = false;
   bool _busy = false;
@@ -33,6 +37,7 @@ class _AuthScreenState extends State<AuthScreen> {
     _email.dispose();
     _pw.dispose();
     _pw2.dispose();
+    _invite.dispose();
     super.dispose();
   }
 
@@ -54,6 +59,8 @@ class _AuthScreenState extends State<AuthScreen> {
         problem = 'Пароль должен быть не короче 10 символов.';
       } else if (pw != _pw2.text) {
         problem = 'Пароли не совпадают.';
+      } else if (inviteOnly && _invite.text.trim().isEmpty) {
+        problem = 'Введите код приглашения. Его выдаёт владелец приложения.';
       }
     } else if (pw.isEmpty) {
       problem = 'Введите пароль.';
@@ -65,7 +72,7 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() => _busy = true);
     try {
       if (_register) {
-        final signedIn = await store.signUp(email, pw);
+        final signedIn = await store.signUp(email, pw, invite: _invite.text);
         if (!signedIn && mounted) {
           setState(() {
             _register = false;
@@ -146,6 +153,16 @@ class _AuthScreenState extends State<AuthScreen> {
                           enableSuggestions: false,
                           decoration: InputDecoration(labelText: 'Повторите пароль'),
                         ),
+                        if (inviteOnly) ...[
+                          SizedBox(height: 12),
+                          TextField(
+                            controller: _invite,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            textCapitalization: TextCapitalization.characters,
+                            decoration: InputDecoration(labelText: 'Код приглашения', hintText: 'WF-XXXX-XXXX'),
+                          ),
+                        ],
                       ],
                       SizedBox(height: 4),
                       Row(children: [

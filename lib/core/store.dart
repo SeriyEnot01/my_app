@@ -288,10 +288,14 @@ class AppStore extends ChangeNotifier {
       'без кавычек и запятых, ключ anon от того же проекта, что и адрес. Затем пересоберите приложение.';
 
   /// Returns true when signed in right away, false when the email must be confirmed first.
-  Future<bool> signUp(String mail, String password) async {
+  Future<bool> signUp(String mail, String password, {String invite = ''}) async {
     final keys = await deriveKeys(mail, password);
     try {
-      final res = await _sb.auth.signUp(email: mail.trim(), password: keys.authPassword);
+      final res = await _sb.auth.signUp(
+        email: mail.trim(),
+        password: keys.authPassword,
+        data: invite.trim().isEmpty ? null : {'invite': invite.trim()},
+      );
       final user = res.user;
       if (res.session != null && user != null) {
         await _secure.write(key: 'enc.${user.id}', value: base64Encode(keys.encKey));
@@ -303,6 +307,9 @@ class AppStore extends ChangeNotifier {
       final m = e.message.toLowerCase();
       if (m.contains('api key') || m.contains('apikey') || e.statusCode == '401') throw AuthFailure(_badKeyMessage(e.message));
       if (m.contains('registered') || m.contains('exists')) throw AuthFailure('Такой аккаунт уже есть. Войдите.');
+      if (m.contains('database error saving new user') || m.contains('invite')) {
+        throw AuthFailure('Код приглашения не подошёл: он неверный, уже использован или истёк. Попросите новый у владельца приложения.');
+      }
       throw AuthFailure('Сервер ответил: ${e.message}');
     } catch (e) {
       if (e is AuthFailure) rethrow;

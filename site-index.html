@@ -1,0 +1,1134 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Задачник и тренировки</title>
+<meta name="theme-color" content="#0e1016">
+<meta name="description" content="Задачи с дедлайнами, план и журнал тренировок, календарь.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Задачник">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: two-column workspace. Left = tasks (add → today → 3 days), right = calendar + training. Stacks on phones. Single dark look by choice. */
+:root{
+  color-scheme: dark;
+  --bg:#0e1016;
+  --surface:#161923;
+  --surface-2:#1d2130;
+  --line:#2a2f40;
+  --fg:#e9eaf2;
+  --muted:#8a8fa6;
+  --faint:#5a5f74;
+  --accent:#9aa5ff;
+  --accent-ink:#11142a;
+  --deadline:#ff9466;
+  --overdue:#ff5f7e;
+  --workout:#4fd6c4;
+  --done:#5a5f74;
+  --f-display:"Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-body:"Onest", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:14px;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:20px 48px;
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(154,165,255,.10), transparent 60%),
+    radial-gradient(700px 420px at -10% 20%, rgba(79,214,196,.06), transparent 60%),
+    var(--bg);
+  background-attachment:fixed;min-height:100%}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Header */
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand h1{font-family:var(--f-display);font-weight:700;font-size:clamp(22px,3.4vw,32px);letter-spacing:-.01em;margin:0;line-height:1.1;text-wrap:balance}
+.brand .date{color:var(--muted);margin-top:6px;font-size:14px}
+.brand .date b{color:var(--fg);font-weight:600}
+.sync{font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:999px}
+.sync i{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+.sync.cloud i{background:var(--workout);box-shadow:0 0 8px var(--workout)}
+.sync.local i{background:var(--deadline)}
+
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.stat .n{font-family:var(--f-display);font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
+.stat .l{font-size:12px;color:var(--muted);letter-spacing:.02em}
+.stat.warn .n{color:var(--overdue)}
+.stat.today .n{color:var(--deadline)}
+.stat.gym .n{color:var(--workout)}
+
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:22px;align-items:start}
+.col{display:flex;flex-direction:column;gap:22px;min-width:0}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.panel-h h2{font-family:var(--f-display);font-weight:500;font-size:15px;letter-spacing:.01em;margin:0;display:flex;align-items:center;gap:10px}
+.panel-h h2 .cnt{font-family:var(--f-mono);font-size:12px;color:var(--muted);background:var(--surface-2);border-radius:999px;padding:2px 8px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.dot.d{background:var(--deadline)} .dot.w{background:var(--workout)} .dot.o{background:var(--overdue)} .dot.x{background:var(--done)}
+
+/* Form */
+.form{display:grid;grid-template-columns:minmax(0,1fr) 150px 110px;gap:10px}
+.form .full{grid-column:1/-1}
+label.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+label.f span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],textarea,select{
+  background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0;transition:border-color .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);outline:none}
+textarea{resize:vertical;min-height:64px}
+input[type=date],input[type=time]{font-family:var(--f-mono);font-size:13.5px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer;transition:transform .08s, filter .15s, background .15s}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.teal{background:var(--workout);color:#06221e}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.btn.ghost:hover{color:var(--fg);border-color:var(--faint)}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:8px}
+.hint{font-size:12.5px;color:var(--faint)}
+.err{font-size:13px;color:var(--overdue)}
+
+/* Task list */
+.list{display:flex;flex-direction:column;gap:8px}
+.task{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px;border-radius:12px;background:var(--surface-2);border:1px solid transparent;transition:border-color .15s}
+.task:hover{border-color:var(--line)}
+.check{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--faint);background:transparent;cursor:pointer;display:grid;place-items:center;margin-top:1px;padding:0}
+.check:hover{border-color:var(--accent)}
+.task.done .check{background:var(--accent);border-color:var(--accent)}
+.check svg{width:13px;height:13px;stroke:var(--accent-ink);opacity:0}
+.task.done .check svg{opacity:1}
+.t-title{font-weight:600;overflow-wrap:anywhere}
+.task.done .t-title{color:var(--faint);text-decoration:line-through}
+.t-desc{font-size:13.5px;color:var(--muted);margin-top:3px;white-space:pre-wrap;overflow-wrap:anywhere}
+.task.done .t-desc{color:var(--faint)}
+.t-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.chip{font-family:var(--f-mono);font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--bg);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.chip.over{color:var(--overdue);border-color:color-mix(in srgb,var(--overdue) 40%,transparent)}
+.chip.due{color:var(--deadline);border-color:color-mix(in srgb,var(--deadline) 40%,transparent)}
+.chip.gym{color:var(--workout);border-color:color-mix(in srgb,var(--workout) 40%,transparent)}
+.del{background:none;border:0;color:var(--faint);cursor:pointer;padding:4px 6px;border-radius:6px;font-size:13px;white-space:nowrap}
+.del:hover{color:var(--overdue);background:var(--bg)}
+.del.arm{color:var(--overdue);background:var(--bg)}
+.daygroup{display:flex;flex-direction:column;gap:8px}
+.daygroup h3{margin:6px 0 0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:500;display:flex;gap:8px;align-items:baseline}
+.daygroup h3 em{font-style:normal;font-family:var(--f-mono);color:var(--faint);text-transform:none;letter-spacing:0}
+.empty{padding:18px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:14px;text-align:center}
+details.all summary{cursor:pointer;color:var(--muted);font-size:13.5px;list-style:none;display:flex;align-items:center;gap:8px}
+details.all summary::-webkit-details-marker{display:none}
+details.all summary::before{content:"▸";font-size:11px;transition:transform .15s}
+details.all[open] summary::before{transform:rotate(90deg)}
+details.all .list{margin-top:10px}
+
+/* Calendar */
+.cal-nav{display:flex;align-items:center;gap:6px}
+.cal-nav .m{font-family:var(--f-display);font-size:15px;font-weight:500;min-width:9.5em;text-align:center;text-transform:capitalize}
+.iconbtn{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center}
+.iconbtn:hover{color:var(--fg);border-color:var(--faint)}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.cal .wd{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);text-align:center;padding-bottom:4px}
+.cal .wd.we{color:color-mix(in srgb,var(--deadline) 60%,var(--faint))}
+.day{aspect-ratio:1/0.92;max-width:100%;border-radius:11px;background:var(--surface-2);border:1px solid transparent;cursor:pointer;padding:7px 8px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;color:var(--fg);transition:border-color .12s, background .12s;min-width:0}
+.day:hover{border-color:var(--faint)}
+.day .num{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums}
+.day.out{background:transparent;color:var(--faint)}
+.day.out .dots{opacity:.5}
+.day.today{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface-2))}
+.day.today .num{color:var(--accent);font-weight:600}
+.day.sel{background:var(--fg);color:var(--bg)}
+.day.sel .num{color:var(--bg)}
+.day.sel .dot.x{background:#9a9cab}
+.dots{display:flex;flex-wrap:wrap;gap:3px;align-items:center;min-height:8px}
+.dots .dot{width:7px;height:7px}
+.dots .more{font-family:var(--f-mono);font-size:9.5px;color:var(--muted);line-height:1}
+.day.sel .dots .more{color:#555}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.dayinfo{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px}
+.dayinfo-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.dayinfo-h strong{font-family:var(--f-display);font-weight:500;font-size:14px}
+.mini{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border-radius:10px;background:var(--surface-2);font-size:14px}
+.mini .dot{margin-top:7px}
+.mini div{min-width:0;overflow-wrap:anywhere}
+.mini small{display:block;color:var(--muted);font-size:12.5px;white-space:pre-wrap}
+
+/* Training */
+.tabs{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:11px;border:1px solid var(--line)}
+.tab{border:0;background:transparent;color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:500}
+.tab[aria-selected=true]{background:var(--surface-2);color:var(--fg)}
+.plans{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.plan{background:var(--surface-2);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;border-left:3px solid var(--workout);min-width:0}
+.plan .pn{font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.plan .pn span{overflow-wrap:anywhere}
+.plan ol{margin:0;padding-left:18px;color:var(--muted);font-size:13.5px}
+.plan ol li{overflow-wrap:anywhere}
+.plan .last{font-family:var(--f-mono);font-size:11.5px;color:var(--faint)}
+.sub{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:4px 0 -4px}
+.logform{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px}
+.logform .full{grid-column:1/-1}
+.log{display:flex;flex-direction:column;gap:6px}
+.logrow{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:12px;align-items:start;padding:10px 12px;border-radius:10px;background:var(--surface-2)}
+.logrow .ld{font-family:var(--f-mono);font-size:12.5px;color:var(--workout);line-height:1.35}
+.logrow .ld small{display:block;color:var(--faint)}
+.logrow .ln{font-weight:600;overflow-wrap:anywhere}
+.logrow .lt{font-size:13px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.strip{display:flex;gap:4px;align-items:flex-end}
+.strip i{flex:1;height:26px;border-radius:5px;background:var(--surface-2);position:relative}
+.strip i.on{background:var(--workout)}
+.strip i.now{outline:1px solid var(--accent);outline-offset:1px}
+.strip-l{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--faint)}
+
+.backup{flex-direction:row;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px 24px}
+.bk-text{display:flex;flex-direction:column;gap:4px;max-width:62ch;min-width:0}
+.bk-h{font-family:var(--f-display);font-weight:500;font-size:15px;margin:0}
+label.btn{display:inline-block}
+.acct{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.acct-email{font-size:13px;color:var(--muted);max-width:22ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.auth{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));overflow-y:auto}
+.auth-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:26px 22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.auth-card h2{font-family:var(--f-display);font-weight:700;font-size:22px;margin:0}
+.auth-mark{display:flex;gap:6px}.auth-mark .dot{width:10px;height:10px}
+.auth-lead{margin:-6px 0 0;color:var(--muted);font-size:14px}
+.auth-note{margin:0;font-size:12.5px;color:var(--faint);line-height:1.45}
+.auth-note b{color:var(--muted);font-weight:600}
+.linkbtn{background:none;border:0;color:var(--accent);cursor:pointer;padding:4px;font-size:14px;align-self:center}
+.btn:disabled{opacity:.6;cursor:progress}
+.showpw{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--muted);cursor:pointer;margin-top:-4px}
+.showpw input{width:16px;height:16px;accent-color:var(--accent)}
+.mascot{flex-direction:row;align-items:center;gap:22px;flex-wrap:wrap;overflow:hidden;position:relative}
+.mascot::before{content:"";position:absolute;inset:auto -60px -80px auto;width:260px;height:260px;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--accent) 18%,transparent),transparent);pointer-events:none}
+.m-frame{width:200px;max-width:100%;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:var(--surface-2);border:1px solid var(--line);flex:none;display:grid;place-items:center;position:relative}
+.m-frame img{width:100%;height:100%;object-fit:cover;display:block}
+.m-frame .m-empty{display:none;flex-direction:column;align-items:center;gap:8px;color:var(--faint);font-size:12.5px;text-align:center;padding:12px}
+.m-frame.empty{border-style:dashed}
+.m-frame.empty img{display:none}
+.m-frame.empty .m-empty{display:flex}
+.m-side{flex:1 1 260px;min-width:0;display:flex;flex-direction:column;gap:14px;position:relative}
+.m-bubble{background:var(--surface-2);border-radius:16px 16px 16px 4px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;max-width:52ch}
+.m-hello{font-family:var(--f-display);font-weight:500;font-size:17px}
+.m-line{font-size:15px}
+.m-sub{font-size:13px;color:var(--muted)}
+.notify{flex-direction:row;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px 24px}
+.notify .row{align-items:flex-end}
+.n-time{width:auto}
+.n-time input{width:130px}
+@media (max-width:560px){.mascot{flex-direction:column;align-items:stretch}.m-frame{width:100%;max-width:320px;align-self:center}}
+@media (max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .form .ti{grid-column:1/-1}
+  .logform{grid-template-columns:minmax(0,1fr)}
+  .panel{padding:14px}
+  .day{padding:5px;aspect-ratio:1/1.05}
+  .day .num{font-size:12px}
+  .dots .dot{width:6px;height:6px}
+  .cal{gap:3px}
+  .logrow{grid-template-columns:70px minmax(0,1fr) auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Задачник</h1>
+      <div class="date" id="todayLabel"></div>
+    </div>
+    <div class="acct"><div class="sync" id="sync"><i></i><span>Подключение…</span></div><span id="acct" hidden class="acct"><span class="acct-email" id="acctEmail"></span><button class="btn ghost sm" type="button" id="acctOut">Выйти</button></span></div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="addH">
+        <div class="panel-h"><h2 id="addH">Новая задача</h2></div>
+        <form class="form" id="taskForm" autocomplete="off">
+          <label class="f ti"><span>Задача</span><input type="text" id="tTitle" placeholder="Например, сдать отчёт по проекту" maxlength="200"></label>
+          <label class="f"><span>Дедлайн</span><input type="date" id="tDate"></label>
+          <label class="f"><span>Время</span><input type="time" id="tTime"></label>
+          <label class="f full"><span>Описание</span><textarea id="tDesc" placeholder="Детали, ссылки, что нужно подготовить" maxlength="2000"></textarea></label>
+          <div class="row full"><button class="btn primary" type="submit">Добавить задачу</button><span class="err" id="tErr"></span></div>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="todayH">
+        <div class="panel-h"><h2 id="todayH"><span class="dot d"></span>Сегодня <span class="cnt" id="todayCnt">0</span></h2></div>
+        <div class="list" id="todayList"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="soonH">
+        <div class="panel-h"><h2 id="soonH"><span class="dot d" style="opacity:.6"></span>Ближайшие 3 дня <span class="cnt" id="soonCnt">0</span></h2></div>
+        <div id="soonList" class="list"></div>
+        <details class="all" id="allWrap"><summary id="allSum">Все задачи</summary><div class="list" id="allList"></div></details>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-labelledby="calH">
+        <div class="panel-h">
+          <h2 id="calH">Календарь</h2>
+          <div class="cal-nav">
+            <button class="iconbtn" id="prevM" aria-label="Предыдущий месяц"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <div class="m" id="monthLabel"></div>
+            <button class="iconbtn" id="nextM" aria-label="Следующий месяц"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+        <div class="cal" id="cal"></div>
+        <div class="legend">
+          <span><i class="dot d"></i>Дедлайн</span>
+          <span><i class="dot o"></i>Просрочено</span>
+          <span><i class="dot x"></i>Выполнено</span>
+          <span><i class="dot w"></i>Тренировка</span>
+        </div>
+        <div class="dayinfo" id="dayInfo"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="gymH">
+        <div class="panel-h">
+          <h2 id="gymH"><span class="dot w"></span>Тренировки</h2>
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" id="tabLog" aria-selected="true">Журнал</button>
+            <button class="tab" role="tab" id="tabPlan" aria-selected="false">План</button>
+          </div>
+        </div>
+
+        <div id="paneLog" style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <div class="strip" id="strip"></div>
+            <div class="strip-l"><span>4 недели назад</span><span>сегодня</span></div>
+          </div>
+          <form class="logform" id="logForm" autocomplete="off">
+            <label class="f"><span>Дата</span><input type="date" id="lDate"></label>
+            <label class="f"><span>Тренировка</span><select id="lPlan"></select></label>
+            <label class="f full"><span>Заметка</span><input type="text" id="lNote" placeholder="Веса, самочувствие, что получилось" maxlength="500"></label>
+            <div class="row full"><button class="btn teal" type="submit">Отметить тренировку</button><span class="err" id="lErr"></span></div>
+          </form>
+          <div class="sub">История</div>
+          <div class="log" id="logList"></div>
+        </div>
+
+        <div id="paneplan" style="display:none;flex-direction:column;gap:14px">
+          <form class="form" id="planForm" autocomplete="off" style="grid-template-columns:minmax(0,1fr)">
+            <label class="f"><span>Название тренировки</span><input type="text" id="pName" placeholder="Например, Верх тела" maxlength="80"></label>
+            <label class="f"><span>Упражнения — каждое с новой строки</span><textarea id="pEx" rows="4" placeholder="Жим лёжа 4×8&#10;Тяга штанги в наклоне 4×10&#10;Отжимания на брусьях 3×12"></textarea></label>
+            <div class="row"><button class="btn teal" type="submit" id="pSubmit">Сохранить в план</button><button class="btn ghost" type="button" id="pCancel" hidden>Отмена</button><span class="err" id="pErr"></span></div>
+          </form>
+          <div class="sub">Мой план</div>
+          <div class="plans" id="plans"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel mascot" aria-label="Талисман">
+    <div class="m-frame" id="mFrame">
+      <img id="mascotImg" alt="Гифка-талисман" decoding="async">
+      <div class="m-empty">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 9"/></svg>
+        <span>Здесь будет ваша гифка</span>
+      </div>
+    </div>
+    <div class="m-side">
+      <div class="m-bubble">
+        <div class="m-hello" id="mHello">Привет!</div>
+        <div class="m-line" id="mLine"></div>
+        <div class="m-sub" id="mSub"></div>
+      </div>
+      <div class="row">
+        <label class="btn ghost sm" for="mascotFile" tabindex="0" id="mascotPick">Выбрать гифку</label>
+        <input type="file" id="mascotFile" accept="image/gif,image/webp,image/png,image/jpeg" hidden>
+        <button class="btn ghost sm" type="button" id="mascotReset" hidden>Вернуть общую</button>
+        <span class="hint" id="mascotMsg" role="status"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel notify" aria-labelledby="nH">
+    <div class="bk-text">
+      <h2 id="nH" class="bk-h">Напоминания о дедлайнах</h2>
+      <p class="hint" id="nState" style="margin:0">Проверяем…</p>
+    </div>
+    <div class="row" id="nControls" hidden>
+      <label class="f n-time"><span>Напоминать в день дедлайна в</span><input type="time" id="nTime" value="09:00"></label>
+      <button class="btn teal" type="button" id="nOn">Включить на этом устройстве</button>
+      <button class="btn ghost" type="button" id="nOff" hidden>Выключить на этом устройстве</button>
+      <button class="btn ghost" type="button" id="nTest" hidden>Проверить</button>
+    </div>
+  </section>
+
+  <section class="panel backup" aria-labelledby="bkH">
+    <div class="bk-text">
+      <h2 id="bkH" class="bk-h">Резервная копия</h2>
+      <p class="hint" style="margin:0">Сохраните все задачи и тренировки в файл. Его можно загрузить в эту же программу на другом устройстве: записи объединятся, дубликатов не будет.</p>
+    </div>
+    <div class="row">
+      <button class="btn ghost" type="button" id="bkExport">Сохранить в файл</button>
+      <label class="btn ghost" for="bkFile" tabindex="0" id="bkImportLbl">Загрузить из файла</label>
+      <input type="file" id="bkFile" accept=".json,application/json" hidden>
+      <span class="hint" id="bkMsg" role="status"></span>
+    </div>
+  </section>
+</div>
+<div class="auth" id="auth" hidden>
+  <form class="auth-card" id="authForm" autocomplete="on" novalidate>
+    <div class="auth-mark" aria-hidden="true"><i class="dot d"></i><i class="dot w"></i><i class="dot x"></i></div>
+    <h2 id="authTitle">Вход</h2>
+    <p class="auth-lead" id="authLead"></p>
+    <label class="f"><span>Почта</span><input type="email" id="aEmail" autocomplete="username" inputmode="email" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <label class="f"><span>Пароль</span><input type="password" id="aPw" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <label class="f" id="aPw2Wrap" hidden><span>Повторите пароль</span><input type="password" id="aPw2" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <label class="f" id="aInvWrap" hidden><span>Код приглашения</span><input type="text" id="aInv" placeholder="WF-XXXX-XXXX" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false"></label>
+    <label class="showpw"><input type="checkbox" id="aShow"> Показать пароль</label>
+    <div class="err" id="aErr" role="alert"></div>
+    <button class="btn primary" type="submit" id="aSubmit">Войти</button>
+    <button class="linkbtn" type="button" id="aSwitch">Нет аккаунта? Создать</button>
+    <p class="auth-note"><b>Пароль нельзя восстановить.</b> Им шифруются задачи, и без него их не прочитает никто, включая вас. Запишите пароль в надёжное место и иногда сохраняйте резервную копию.</p>
+  </form>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script>window.supabase||document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\/script>')</script>
+<script>
+(function(){
+"use strict";
+const MONTHS=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+const MONTHS_G=["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+const WD=["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+const WD_FULL=["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+const LS_KEY="zadachnik.v1";
+
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const todayStr=()=>ymd(new Date());
+const human=s=>{const d=parse(s);return d.getDate()+" "+MONTHS_G[d.getMonth()]};
+const rel=s=>{const diff=Math.round((parse(s)-parse(todayStr()))/864e5);
+  if(diff===0)return"сегодня";if(diff===1)return"завтра";if(diff===2)return"послезавтра";if(diff===-1)return"вчера";
+  return human(s)};
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const plural=(n,a,b,c)=>{const m10=n%10,m100=n%100;if(m10===1&&m100!==11)return a;if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b;return c};
+
+/* ---------- Storage: Supabase account + end-to-end encryption ----------
+   What the server stores per record: user_id, record id, random IV, AES-GCM ciphertext, timestamps.
+   Titles, descriptions, dates, workouts are encrypted on this device before upload.
+   The encryption key is derived from the password and never leaves the device.
+   The server never receives the password itself either: login uses a separate derived value. */
+let items={};                 // id -> item (decrypted, this device only)
+let dirty={};                 // id -> change counter, waiting for upload
+let seq=0;
+const CFG=window.ZADACHNIK_CONFIG||{};
+const configured=!!(CFG.url&&CFG.anonKey&&!/ВАШ|YOUR/.test(CFG.url+CFG.anonKey));
+let sb=null, encKey=null, uidCur=null, emailCur="", lastPull=null;
+const te=new TextEncoder(), td=new TextDecoder();
+const b64=buf=>{const b=new Uint8Array(buf);let s="";for(let i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s)};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const hex=buf=>Array.from(new Uint8Array(buf),x=>x.toString(16).padStart(2,"0")).join("");
+
+/* --- crypto --- */
+const KDF_ITER=310000;
+async function pbkdf2(pw,salt){
+  const base=await crypto.subtle.importKey("raw",te.encode(pw),"PBKDF2",false,["deriveBits"]);
+  return crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:te.encode(salt),iterations:KDF_ITER},base,256);
+}
+async function deriveKeys(email,pw){
+  const e=email.trim().toLowerCase().normalize("NFC");pw=pw.normalize("NFC");
+  const [authBits,encBits]=await Promise.all([pbkdf2(pw,"zadachnik/auth/v1/"+e),pbkdf2(pw,"zadachnik/enc/v1/"+e)]);
+  const key=await crypto.subtle.importKey("raw",encBits,{name:"AES-GCM"},false,["encrypt","decrypt"]);
+  return {authPw:hex(authBits),key};
+}
+async function encrypt(obj,id){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv,additionalData:te.encode(id)},encKey,te.encode(JSON.stringify(obj)));
+  return {iv:b64(iv),data:b64(ct)};
+}
+async function decrypt(row){
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(row.iv),additionalData:te.encode(row.id)},encKey,unb64(row.data));
+  return JSON.parse(td.decode(pt));
+}
+
+/* --- key kept on this device (non-extractable) so you stay signed in --- */
+// v2 stores: keys (encryption key), mirror (deadline titles for notifications), assets (chosen gif). sw.js opens the same DB.
+function idb(){return new Promise((res,rej)=>{const r=indexedDB.open("zadachnik",2);r.onupgradeneeded=()=>{for(const n of ["keys","mirror","assets"])if(!r.result.objectStoreNames.contains(n))r.result.createObjectStore(n)};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function idbStore(store,mode,fn){const db=await idb();return new Promise((res,rej)=>{const tx=db.transaction(store,mode);const req=fn(tx.objectStore(store));tx.oncomplete=()=>res(req&&req.result);tx.onerror=()=>rej(tx.error)})}
+const idbDo=(mode,fn)=>idbStore("keys",mode,fn);
+const keyPut=(uid,k)=>idbDo("readwrite",s=>s.put(k,uid)).catch(()=>{});
+const keyGet=uid=>idbDo("readonly",s=>s.get(uid)).catch(()=>null);
+const keyClear=()=>idbDo("readwrite",s=>s.clear()).catch(()=>{});
+
+/* --- local cache --- */
+const cacheKey=()=>uidCur?"zadachnik.u."+uidCur:LS_KEY;
+function loadLocal(){
+  try{const r=JSON.parse(localStorage.getItem(cacheKey())||"null");
+    if(uidCur){items=(r&&r.items)||{};dirty=(r&&r.dirty)||{};lastPull=(r&&r.lastPull)||null}
+    else{items=r||{};dirty={}}
+  }catch(e){items={};dirty={}}
+}
+function saveLocal(){
+  try{localStorage.setItem(cacheKey(),JSON.stringify(uidCur?{items,dirty,lastPull}:items))}catch(e){}
+}
+
+async function put(item){
+  item.updated=Date.now();
+  items[item.id]=item;dirty[item.id]=++seq+Date.now();
+  saveLocal();render();scheduleSync();
+}
+async function remove(id){
+  delete items[id];dirty[id]=++seq+Date.now();
+  saveLocal();render();scheduleSync();
+}
+
+/* --- status chip --- */
+function setSync(kind,text){const s=$("sync");s.className="sync "+kind;s.querySelector("span").textContent=text}
+function pendingCount(){return Object.keys(dirty).length}
+function idleStatus(){
+  if(!uidCur){setSync("local",configured?"Не выполнен вход":"Только на этом устройстве");return}
+  if(!navigator.onLine){setSync("local",pendingCount()?"Нет сети, изменения отправятся позже":"Нет сети");return}
+  setSync("cloud",pendingCount()?"Ждёт отправки: "+pendingCount():"Синхронизировано");
+}
+
+/* --- sync --- */
+let syncing=false,again=false,syncTimer=null;
+function scheduleSync(ms){clearTimeout(syncTimer);syncTimer=setTimeout(syncNow,ms==null?700:ms)}
+async function syncNow(){
+  if(!sb||!uidCur||!encKey){idleStatus();return}
+  if(syncing){again=true;return}
+  syncing=true;
+  try{
+    if(!navigator.onLine)throw {offline:true};
+    setSync("","Синхронизация…");
+    await push();await pull();
+    saveLocal();render();idleStatus();
+    if(typeof onSynced==="function")onSynced();
+  }catch(e){
+    if(e&&e.offline)idleStatus();
+    else if(e&&e.auth){setSync("local","Войдите снова");showAuth("login","Сессия закончилась. Войдите снова, задачи на этом устройстве сохранены.");}
+    else{console.warn(e);setSync("local","Не удалось синхронизировать, повторим позже");}
+  }finally{
+    syncing=false;
+    if(again){again=false;scheduleSync(300)}
+  }
+}
+function checkErr(error){
+  if(!error)return;
+  const st=error.status||error.code;
+  if(st===401||st==="PGRST301"||/JWT/i.test(error.message||""))throw {auth:true};
+  if(/fetch|network/i.test(error.message||""))throw {offline:true};
+  throw error;
+}
+async function push(){
+  const ids=Object.keys(dirty);
+  for(let i=0;i<ids.length;i+=200){
+    const chunk=ids.slice(i,i+200),marks={},rows=[];
+    for(const id of chunk){
+      marks[id]=dirty[id];
+      if(items[id])rows.push(Object.assign({id,user_id:uidCur,deleted:false},await encrypt(items[id],id)));
+      else rows.push({id,user_id:uidCur,deleted:true,iv:null,data:null});
+    }
+    const {error}=await sb.from("items").upsert(rows,{onConflict:"user_id,id"});
+    checkErr(error);
+    for(const id of chunk)if(dirty[id]===marks[id])delete dirty[id];
+    saveLocal();
+  }
+}
+async function pull(){
+  let from=0,maxSeen=lastPull,bad=0;const PAGE=1000;
+  // re-read a small window before the last seen change so nothing committed late is missed
+  const since=lastPull?new Date(new Date(lastPull).getTime()-60000).toISOString():null;
+  for(;;){
+    let q=sb.from("items").select("id,iv,data,deleted,updated_at").order("updated_at",{ascending:true}).range(from,from+PAGE-1);
+    if(since)q=q.gt("updated_at",since);
+    const {data,error}=await q;checkErr(error);
+    for(const row of data){
+      if(!maxSeen||row.updated_at>maxSeen)maxSeen=row.updated_at;
+      if(dirty[row.id])continue;
+      if(row.deleted){delete items[row.id];continue}
+      try{items[row.id]=await decrypt(row)}catch(e){bad++}
+    }
+    if(data.length<PAGE)break;from+=PAGE;
+  }
+  lastPull=maxSeen;
+  if(bad)console.warn(bad+" records could not be decrypted with this password");
+}
+
+/* --- accounts --- */
+function sbClient(){
+  if(sb||!configured||!window.supabase)return sb;
+  sb=window.supabase.createClient(CFG.url,CFG.anonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"zadachnik.auth"}});
+  return sb;
+}
+function adoptLegacyLocal(){
+  // tasks created on this device before accounts existed get uploaded once
+  try{
+    const old=JSON.parse(localStorage.getItem(LS_KEY)||"null");
+    if(old&&typeof old==="object"){
+      for(const [id,v] of Object.entries(old)){if(!items[id]){items[id]=v;dirty[id]=++seq+Date.now()}}
+      localStorage.removeItem(LS_KEY);
+    }
+  }catch(e){}
+}
+function startUser(uid,email,key){
+  uidCur=uid;emailCur=email||"";encKey=key;
+  try{localStorage.setItem("zadachnik.last",JSON.stringify({uid,email:emailCur}))}catch(e){}
+  loadLocal();adoptLegacyLocal();saveLocal();
+  $("acct").hidden=false;$("acctEmail").textContent=emailCur;
+  hideAuth();render();syncNow();
+}
+async function signIn(email,pw){
+  const c=sbClient();if(!c)throw new Error("Нет связи с сервером. Проверьте интернет.");
+  const {authPw,key}=await deriveKeys(email,pw);
+  const {data,error}=await c.auth.signInWithPassword({email:email.trim(),password:authPw});
+  if(error){
+    if(/confirm/i.test(error.message))throw new Error("Почта ещё не подтверждена. Откройте письмо от Supabase и перейдите по ссылке.");
+    if(/invalid/i.test(error.message))throw new Error("Неверная почта или пароль. Нажмите «Показать пароль» и проверьте раскладку, заглавные буквы и пробелы.");
+    if(/fetch|network/i.test(error.message))throw new Error("Нет связи с сервером. Проверьте интернет.");
+    throw new Error(error.message);
+  }
+  await keyPut(data.user.id,key);
+  startUser(data.user.id,data.user.email,key);
+}
+function inviteOnly(){return !!(window.ZADACHNIK_CONFIG&&window.ZADACHNIK_CONFIG.inviteOnly)}
+async function signUp(email,pw,invite){
+  const c=sbClient();if(!c)throw new Error("Нет связи с сервером. Проверьте интернет.");
+  const {authPw,key}=await deriveKeys(email,pw);
+  const {data,error}=await c.auth.signUp({email:email.trim(),password:authPw,options:{emailRedirectTo:location.origin+location.pathname,data:invite?{invite:invite}:undefined}});
+  if(error){
+    if(/registered|exists/i.test(error.message))throw new Error("Такой аккаунт уже есть. Войдите.");
+    if(/database error saving new user|invite/i.test(error.message))throw new Error("Код приглашения не подошёл: он неверный, уже использован или истёк. Попросите новый у владельца приложения.");
+    if(/fetch|network/i.test(error.message))throw new Error("Нет связи с сервером. Проверьте интернет.");
+    throw new Error(error.message);
+  }
+  if(data.session){await keyPut(data.user.id,key);startUser(data.user.id,data.user.email,key);return "in"}
+  return "confirm";
+}
+let logoutArmed=false;
+async function signOut(){
+  if(pendingCount()&&!logoutArmed){
+    await syncNow();
+    if(pendingCount()){logoutArmed=true;$("acctOut").textContent="Выйти без отправки?";
+      setSync("local","Не отправлено: "+pendingCount()+". Подключитесь к сети или нажмите ещё раз");return}
+  }
+  logoutArmed=false;$("acctOut").textContent="Выйти";
+  if(typeof onSignOut==="function"){try{await onSignOut()}catch(e){}}
+  try{await sb.auth.signOut({scope:"local"})}catch(e){}
+  try{localStorage.removeItem(cacheKey());localStorage.removeItem("zadachnik.last")}catch(e){}
+  await keyClear();
+  uidCur=null;encKey=null;items={};dirty={};lastPull=null;
+  $("acct").hidden=true;render();showAuth("login");
+}
+
+async function bootStorage(){
+  if(!configured){loadLocal();render();idleStatus();$("acct").hidden=true;return}
+  let last=null;try{last=JSON.parse(localStorage.getItem("zadachnik.last")||"null")}catch(e){}
+  const c=sbClient();
+  let session=null;
+  if(c){try{session=(await c.auth.getSession()).data.session}catch(e){}}
+  const uid=session?session.user.id:(last&&last.uid);
+  const email=session?session.user.email:(last&&last.email);
+  if(uid){
+    const key=await keyGet(uid);
+    if(key){startUser(uid,email,key);return}
+  }
+  showAuth("login",session?"Введите пароль, чтобы расшифровать задачи на этом устройстве.":"",email);
+}
+window.addEventListener("online",()=>scheduleSync(100));
+window.addEventListener("offline",idleStatus);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")scheduleSync(100)});
+setInterval(()=>{if(document.visibilityState==="visible")syncNow()},30000);
+
+/* --- sign-in screen --- */
+let authMode="login";
+function showAuth(mode,lead,email){
+  authMode=mode;const reg=mode==="register";
+  $("authTitle").textContent=reg?"Создать аккаунт":"Вход";
+  $("aSubmit").textContent=reg?"Создать аккаунт":"Войти";
+  $("aSwitch").textContent=reg?"Уже есть аккаунт? Войти":"Нет аккаунта? Создать";
+  $("aPw2Wrap").hidden=!reg;
+  $("aInvWrap").hidden=!(reg&&inviteOnly());
+  $("aPw").setAttribute("autocomplete",reg?"new-password":"current-password");
+  $("authLead").textContent=lead||(reg?"Задачи шифруются на устройстве. Пароль от 10 символов, он же ключ шифрования.":"Войдите, чтобы задачи синхронизировались между телефоном и компьютером.");
+  if(email)$("aEmail").value=email;
+  $("aErr").textContent="";$("aPw").value="";$("aPw2").value="";$("aShow").checked=false;$("aPw").type="password";$("aPw2").type="password";
+  $("auth").hidden=false;
+  setTimeout(()=>($("aEmail").value?$("aPw"):$("aEmail")).focus(),50);
+}
+function hideAuth(){$("auth").hidden=true}
+$("aSwitch").addEventListener("click",()=>showAuth(authMode==="login"?"register":"login","",$("aEmail").value));
+$("authForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const email=$("aEmail").value.trim(),pw=$("aPw").value;
+  const err=t=>{$("aErr").textContent=t};
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return err("Введите почту полностью, например name@mail.ru.");
+  if(authMode==="register"){
+    if(pw.length<10)return err("Пароль должен быть не короче 10 символов.");
+    if(pw!==$("aPw2").value)return err("Пароли не совпадают.");
+    if(inviteOnly()&&!$("aInv").value.trim())return err("Введите код приглашения. Его выдаёт владелец приложения.");
+  }else if(!pw)return err("Введите пароль.");
+  const btn=$("aSubmit");btn.disabled=true;const t0=btn.textContent;btn.textContent="Проверяем…";err("");
+  try{
+    if(authMode==="register"){
+      const r=await signUp(email,pw,$("aInv").value.trim());
+      if(r==="confirm")showAuth("login","Мы отправили письмо на "+email+". Подтвердите адрес по ссылке и войдите с этим паролем.",email);
+    }else await signIn(email,pw);
+  }catch(ex){err(ex.message||"Не получилось. Попробуйте ещё раз.")}
+  finally{btn.disabled=false;btn.textContent=t0}
+});
+$("acctOut").addEventListener("click",signOut);
+$("aShow").addEventListener("change",e=>{const t=e.target.checked?"text":"password";$("aPw").type=t;$("aPw2").type=t});
+
+/* ---------- Derived views ---------- */
+const tasks=()=>Object.values(items).filter(x=>x.kind==="task");
+const plans=()=>Object.values(items).filter(x=>x.kind==="plan").sort((a,b)=>(a.created||0)-(b.created||0));
+const logs=()=>Object.values(items).filter(x=>x.kind==="log").sort((a,b)=>b.date.localeCompare(a.date)||(b.created||0)-(a.created||0));
+const byDue=(a,b)=>(a.due+(a.time||"99")).localeCompare(b.due+(b.time||"99"));
+const isOver=t=>!t.done&&t.due<todayStr();
+
+/* ---------- Rendering ---------- */
+let viewY,viewM,selDay=todayStr(),armed=null,editingPlan=null;
+
+function taskHTML(t,showDate){
+  const over=isOver(t);
+  const chips=[];
+  if(over)chips.push(`<span class="chip over">просрочено · ${esc(human(t.due))}</span>`);
+  else if(showDate)chips.push(`<span class="chip due">${esc(rel(t.due))}</span>`);
+  if(t.time)chips.push(`<span class="chip">до ${esc(t.time)}</span>`);
+  return `<div class="task${t.done?" done":""}" data-id="${esc(t.id)}">
+    <button class="check" data-act="toggle" aria-label="${t.done?"Вернуть в работу":"Отметить выполненной"}"><svg viewBox="0 0 24 24" fill="none" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+    <div style="min-width:0"><div class="t-title">${esc(t.title)}</div>${t.desc?`<div class="t-desc">${esc(t.desc)}</div>`:""}${chips.length?`<div class="t-meta">${chips.join("")}</div>`:""}</div>
+    <button class="del${armed===t.id?" arm":""}" data-act="del">${armed===t.id?"Удалить?":"✕"}</button>
+  </div>`;
+}
+
+function renderStats(){
+  const T=todayStr(),ts=tasks();
+  const today=ts.filter(t=>!t.done&&t.due===T).length;
+  const over=ts.filter(isOver).length;
+  const soon=ts.filter(t=>!t.done&&t.due>T&&t.due<=ymd(addDays(new Date(),3))).length;
+  const now=new Date(),mk=ymd(now).slice(0,7);
+  const gym=logs().filter(l=>l.date.slice(0,7)===mk).length;
+  $("stats").innerHTML=`
+    <div class="stat today"><span class="n">${today}</span><span class="l">на сегодня</span></div>
+    <div class="stat"><span class="n">${soon}</span><span class="l">в ближайшие 3 дня</span></div>
+    <div class="stat${over?" warn":""}"><span class="n">${over}</span><span class="l">просрочено</span></div>
+    <div class="stat gym"><span class="n">${gym}</span><span class="l">${plural(gym,"тренировка","тренировки","тренировок")} в ${["январе","феврале","марте","апреле","мае","июне","июле","августе","сентябре","октябре","ноябре","декабре"][now.getMonth()]}</span></div>`;
+}
+
+function renderTasks(){
+  const T=todayStr(),ts=tasks();
+  const todayList=ts.filter(t=>t.due===T||isOver(t)).sort((a,b)=>(a.done-b.done)||byDue(a,b));
+  $("todayCnt").textContent=todayList.filter(t=>!t.done).length;
+  $("todayList").innerHTML=todayList.length?todayList.map(t=>taskHTML(t,false)).join("")
+    :`<div class="empty">На сегодня дедлайнов нет. Добавьте задачу выше, и она появится здесь в день дедлайна.</div>`;
+
+  let html="",cnt=0;
+  for(let i=1;i<=3;i++){
+    const d=addDays(new Date(),i),ds=ymd(d);
+    const list=ts.filter(t=>t.due===ds).sort((a,b)=>(a.done-b.done)||byDue(a,b));
+    cnt+=list.filter(t=>!t.done).length;
+    html+=`<div class="daygroup"><h3>${esc(rel(ds))} <em>${esc(human(ds))}, ${WD_FULL[d.getDay()]}</em></h3>${
+      list.length?list.map(t=>taskHTML(t,false)).join(""):`<div class="hint" style="padding:2px 2px 4px">Свободно</div>`}</div>`;
+  }
+  $("soonCnt").textContent=cnt;
+  $("soonList").innerHTML=html;
+
+  const all=ts.slice().sort((a,b)=>(a.done-b.done)||byDue(a,b));
+  $("allSum").textContent=`Все задачи · ${all.length}`;
+  $("allList").innerHTML=all.length?all.map(t=>taskHTML(t,true)).join(""):`<div class="hint">Пока пусто.</div>`;
+}
+
+function eventsOn(ds){
+  return {
+    tasks:tasks().filter(t=>t.due===ds).sort(byDue),
+    logs:logs().filter(l=>l.date===ds)
+  };
+}
+
+function renderCal(){
+  $("monthLabel").textContent=MONTHS[viewM]+" "+viewY;
+  const first=new Date(viewY,viewM,1);
+  const offset=(first.getDay()+6)%7;
+  const start=addDays(first,-offset);
+  const T=todayStr();
+  let html=WD.map((w,i)=>`<div class="wd${i>4?" we":""}">${w}</div>`).join("");
+  const weeks=Math.ceil((offset+new Date(viewY,viewM+1,0).getDate())/7);
+  for(let i=0;i<weeks*7;i++){
+    const d=addDays(start,i),ds=ymd(d);
+    const ev=eventsOn(ds);
+    const dots=[];
+    ev.tasks.forEach(t=>dots.push(t.done?"x":(ds<T?"o":"d")));
+    ev.logs.forEach(()=>dots.push("w"));
+    const shown=dots.slice(0,4).map(c=>`<i class="dot ${c}"></i>`).join("")+(dots.length>4?`<span class="more">+${dots.length-4}</span>`:"");
+    const cls=["day"];if(d.getMonth()!==viewM)cls.push("out");if(ds===T)cls.push("today");if(ds===selDay)cls.push("sel");
+    const label=`${d.getDate()} ${MONTHS_G[d.getMonth()]}: ${ev.tasks.length} ${plural(ev.tasks.length,"дедлайн","дедлайна","дедлайнов")}, ${ev.logs.length} ${plural(ev.logs.length,"тренировка","тренировки","тренировок")}`;
+    html+=`<button class="${cls.join(" ")}" data-day="${ds}" aria-label="${label}"><span class="num">${d.getDate()}</span><span class="dots">${shown}</span></button>`;
+  }
+  $("cal").innerHTML=html;
+  renderDayInfo();
+}
+
+function renderDayInfo(){
+  const ds=selDay,d=parse(ds),ev=eventsOn(ds);
+  let body="";
+  ev.tasks.forEach(t=>{
+    const c=t.done?"x":(isOver(t)?"o":"d");
+    body+=`<div class="mini"><i class="dot ${c}"></i><div>${esc(t.title)}${t.time?` <span class="chip">до ${esc(t.time)}</span>`:""}${t.desc?`<small>${esc(t.desc)}</small>`:""}</div></div>`;
+  });
+  ev.logs.forEach(l=>{
+    body+=`<div class="mini"><i class="dot w"></i><div>${esc(planName(l))}${l.note?`<small>${esc(l.note)}</small>`:""}</div></div>`;
+  });
+  if(!body)body=`<div class="hint">В этот день ничего не запланировано.</div>`;
+  $("dayInfo").innerHTML=`<div class="dayinfo-h"><strong>${d.getDate()} ${MONTHS_G[d.getMonth()]}, ${WD_FULL[d.getDay()]}</strong>
+    <div class="row"><button class="btn ghost sm" data-act="addTaskOn">+ задача на этот день</button><button class="btn ghost sm" data-act="addLogOn">+ тренировка</button></div></div>${body}`;
+}
+
+function planName(l){const p=items[l.planId];return p?p.name:(l.planName||"Тренировка")}
+
+function renderGym(){
+  const ps=plans();
+  const sel=$("lPlan"),prev=sel.value;
+  sel.innerHTML=(ps.length?ps.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join(""):"")+`<option value="__free">Другое / свободная</option>`;
+  if(sel.dataset.touched&&[...sel.options].some(o=>o.value===prev))sel.value=prev;
+  else if(ps.length)sel.value=ps[ps.length-1].id;
+
+  // 28-day strip
+  const days=new Set(logs().map(l=>l.date));
+  let s="";
+  for(let i=27;i>=0;i--){const ds=ymd(addDays(new Date(),-i));s+=`<i class="${days.has(ds)?"on":""}${i===0?" now":""}" title="${esc(human(ds))}${days.has(ds)?": тренировка":""}"></i>`}
+  $("strip").innerHTML=s;
+
+  const ls=logs();
+  $("logList").innerHTML=ls.length?ls.map(l=>{
+    const d=parse(l.date);
+    return `<div class="logrow" data-id="${esc(l.id)}"><div class="ld">${pad(d.getDate())}.${pad(d.getMonth()+1)}<small>${WD[(d.getDay()+6)%7]}</small></div>
+      <div style="min-width:0"><div class="ln">${esc(planName(l))}</div>${l.note?`<div class="lt">${esc(l.note)}</div>`:""}</div>
+      <button class="del${armed===l.id?" arm":""}" data-act="del">${armed===l.id?"Удалить?":"✕"}</button></div>`;
+  }).join(""):`<div class="empty">Тренировок пока нет. Выберите дату и тип, нажмите «Отметить тренировку».</div>`;
+
+  $("plans").innerHTML=ps.length?ps.map(p=>{
+    const last=ls.find(l=>l.planId===p.id);
+    const ex=(p.exercises||"").split("\n").map(x=>x.trim()).filter(Boolean);
+    return `<div class="plan" data-id="${esc(p.id)}">
+      <div class="pn"><span>${esc(p.name)}</span><span class="row" style="gap:2px;flex-wrap:nowrap"><button class="del" data-act="editPlan" aria-label="Изменить">✎</button><button class="del${armed===p.id?" arm":""}" data-act="del">${armed===p.id?"Удалить?":"✕"}</button></span></div>
+      ${ex.length?`<ol>${ex.map(e=>`<li>${esc(e)}</li>`).join("")}</ol>`:`<div class="hint">Без упражнений</div>`}
+      <div class="last">${last?"последняя: "+esc(rel(last.date)):"ещё не выполнялась"}</div></div>`;
+  }).join(""):`<div class="empty" style="grid-column:1/-1">Опишите свои тренировки: название и упражнения. Потом их можно выбирать в журнале.</div>`;
+}
+
+function render(){
+  const T=new Date();
+  $("todayLabel").innerHTML=`<b>${T.getDate()} ${MONTHS_G[T.getMonth()]}</b>, ${WD_FULL[T.getDay()]}`;
+  renderStats();renderTasks();renderCal();renderGym();renderExtras();
+}
+
+/* ---------- Events ---------- */
+$("taskForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const title=$("tTitle").value.trim(),due=$("tDate").value;
+  if(!title){$("tErr").textContent="Напишите, что нужно сделать.";$("tTitle").focus();return}
+  if(!due){$("tErr").textContent="Укажите дату дедлайна.";$("tDate").focus();return}
+  $("tErr").textContent="";
+  put({id:uid(),kind:"task",title,desc:$("tDesc").value.trim(),due,time:$("tTime").value||"",done:false,created:Date.now()});
+  $("tTitle").value="";$("tDesc").value="";$("tTime").value="";
+  selDay=due;const d=parse(due);viewY=d.getFullYear();viewM=d.getMonth();render();
+});
+
+$("logForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const date=$("lDate").value;
+  if(!date){$("lErr").textContent="Укажите дату тренировки.";return}
+  $("lErr").textContent="";
+  const pid=$("lPlan").value;
+  const p=items[pid];
+  put({id:uid(),kind:"log",date,planId:p?pid:"",planName:p?p.name:"Свободная тренировка",note:$("lNote").value.trim(),created:Date.now()});
+  $("lNote").value="";
+});
+
+$("planForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const name=$("pName").value.trim();
+  if(!name){$("pErr").textContent="Дайте тренировке название.";return}
+  $("pErr").textContent="";
+  const base=editingPlan&&items[editingPlan]?items[editingPlan]:{id:uid(),kind:"plan",created:Date.now()};
+  put(Object.assign({},base,{name,exercises:$("pEx").value.trim()}));
+  resetPlanForm();
+});
+function resetPlanForm(){editingPlan=null;$("pName").value="";$("pEx").value="";$("pSubmit").textContent="Сохранить в план";$("pCancel").hidden=true}
+$("pCancel").addEventListener("click",resetPlanForm);
+
+document.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-act]");
+  if(!btn){if(armed){armed=null;render()}return}
+  const host=btn.closest("[data-id]");const id=host&&host.dataset.id;
+  const act=btn.dataset.act;
+  if(act==="toggle"&&items[id]){put(Object.assign({},items[id],{done:!items[id].done}));return}
+  if(act==="del"){
+    if(armed===id){armed=null;remove(id)}else{armed=id;render()}
+    return;
+  }
+  if(armed){armed=null}
+  if(act==="editPlan"&&items[id]){
+    editingPlan=id;$("pName").value=items[id].name;$("pEx").value=items[id].exercises||"";
+    $("pSubmit").textContent="Сохранить изменения";$("pCancel").hidden=false;$("pName").focus();render();return;
+  }
+  if(act==="addTaskOn"){$("tDate").value=selDay;$("tTitle").focus();$("tTitle").scrollIntoView({behavior:"smooth",block:"center"});return}
+  if(act==="addLogOn"){showTab("log");$("lDate").value=selDay;$("lPlan").focus();$("logForm").scrollIntoView({behavior:"smooth",block:"center"});return}
+});
+
+$("cal").addEventListener("click",e=>{
+  const b=e.target.closest("[data-day]");if(!b)return;
+  selDay=b.dataset.day;const d=parse(selDay);
+  if(d.getMonth()!==viewM){viewY=d.getFullYear();viewM=d.getMonth()}
+  renderCal();
+});
+$("prevM").addEventListener("click",()=>{viewM--;if(viewM<0){viewM=11;viewY--}renderCal()});
+$("nextM").addEventListener("click",()=>{viewM++;if(viewM>11){viewM=0;viewY++}renderCal()});
+
+function showTab(t){
+  const log=t==="log";
+  $("tabLog").setAttribute("aria-selected",log);$("tabPlan").setAttribute("aria-selected",!log);
+  $("paneLog").style.display=log?"flex":"none";$("paneplan").style.display=log?"none":"flex";
+}
+$("tabLog").addEventListener("click",()=>showTab("log"));
+$("tabPlan").addEventListener("click",()=>showTab("plan"));
+
+$("lPlan").addEventListener("change",e=>{e.target.dataset.touched="1"});
+
+/* ---------- Backup ---------- */
+function bkSay(t){$("bkMsg").textContent=t}
+$("bkExport").addEventListener("click",async()=>{
+  const all=Object.values(items);
+  const json=JSON.stringify({app:"zadachnik",version:1,exported:new Date().toISOString(),items:all},null,1);
+  const name="zadachnik-"+todayStr()+".json";
+  try{
+    const dl=window.claude&&window.claude.use?await window.claude.use("downloads"):null;
+    if(dl){
+      try{await dl.save({filename:name,data:json});bkSay("Файл сохранён: "+name);}
+      catch(e){bkSay(e&&e.code==="declined"?"Сохранение отменено.":"Не удалось сохранить файл.");}
+      return;
+    }
+  }catch(e){}
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([json],{type:"application/json"}));
+  a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+  bkSay("Файл сохранён: "+name);
+});
+$("bkImportLbl").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();$("bkFile").click()}});
+$("bkFile").addEventListener("change",async e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value="";
+  if(!f)return;
+  let data;
+  try{data=JSON.parse(await f.text())}catch(err){bkSay("Это не файл резервной копии задачника.");return}
+  const list=Array.isArray(data&&data.items)?data.items:[];
+  const ok=list.filter(x=>x&&typeof x.id==="string"&&/^[A-Za-z0-9_\-.~:@+]{1,80}$/.test(x.id)&&["task","plan","log"].includes(x.kind));
+  if(!ok.length){bkSay("В файле нет задач или тренировок.");return}
+  let added=0,updated=0;
+  for(const x of ok){
+    const cur=items[x.id];
+    if(cur&&JSON.stringify(cur)===JSON.stringify(x))continue;
+    if(cur)updated++;else added++;
+    await put(Object.assign({},x));
+  }
+  bkSay(added||updated?`Загружено: новых ${added}, обновлено ${updated}.`:"Всё из файла уже есть в задачнике.");
+});
+
+/* ---------- Mascot block ---------- */
+let mascotUrl=null;
+function mascotLoaded(ok){$("mFrame").classList.toggle("empty",!ok)}
+$("mascotImg").addEventListener("load",()=>mascotLoaded(true));
+$("mascotImg").addEventListener("error",()=>mascotLoaded(false));
+async function loadMascot(){
+  let blob=null;try{blob=await idbStore("assets","readonly",s=>s.get("mascot"))}catch(e){}
+  if(mascotUrl){URL.revokeObjectURL(mascotUrl);mascotUrl=null}
+  if(blob){mascotUrl=URL.createObjectURL(blob);$("mascotImg").src=mascotUrl;$("mascotReset").hidden=false}
+  else{$("mascotImg").src="mascot.gif";$("mascotReset").hidden=true}
+}
+$("mascotPick").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();$("mascotFile").click()}});
+$("mascotFile").addEventListener("change",async e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value="";if(!f)return;
+  if(!/^image\//.test(f.type)){$("mascotMsg").textContent="Это не картинка. Выберите GIF, WebP, PNG или JPG.";return}
+  if(f.size>15*1024*1024){$("mascotMsg").textContent="Файл больше 15 МБ, выберите поменьше.";return}
+  try{await idbStore("assets","readwrite",s=>s.put(f,"mascot"));$("mascotMsg").textContent="";loadMascot()}
+  catch(err){$("mascotMsg").textContent="Не удалось сохранить картинку на этом устройстве."}
+});
+$("mascotReset").addEventListener("click",async()=>{try{await idbStore("assets","readwrite",s=>s.delete("mascot"))}catch(e){}loadMascot()});
+
+function renderMascot(){
+  const h=new Date().getHours();
+  $("mHello").textContent=h<5?"Доброй ночи!":h<12?"Доброе утро!":h<18?"Добрый день!":"Добрый вечер!";
+  const T=todayStr(),ts=tasks();
+  const today=ts.filter(t=>t.due===T),left=today.filter(t=>!t.done).length,over=ts.filter(isOver).length;
+  let line;
+  if(over)line=`Есть просроченные задачи: ${over}. Давай закроем хотя бы одну.`;
+  else if(left)line=`Сегодня ${left} ${plural(left,"дедлайн","дедлайна","дедлайнов")}. Ты справишься!`;
+  else if(today.length)line="Всё на сегодня сделано. Горжусь тобой!";
+  else line="Сегодня дедлайнов нет. Самое время для тренировки.";
+  $("mLine").textContent=line;
+  const weekAgo=ymd(addDays(new Date(),-6));
+  const w=logs().filter(l=>l.date>=weekAgo&&l.date<=T).length;
+  $("mSub").textContent=w?`Тренировок за 7 дней: ${w}.`:"За неделю пока без тренировок.";
+}
+
+/* ---------- Deadline reminders (Web Push) ----------
+   Server side keeps only (user, record id, time to remind). Pushes carry no data at all.
+   The service worker builds the notification text from the mirror below, which lives only on this device. */
+const SETTINGS_ID="settings";
+const VAPID=(CFG.vapidPublicKey||"").trim();
+function settingsItem(){const s=items[SETTINGS_ID];return Object.assign({id:SETTINGS_ID,kind:"settings",notify:{enabled:false,time:"09:00"}},s||{})}
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const standalone=window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const pushSupported="serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window;
+const b64uToBytes=s=>{s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return Uint8Array.from(atob(s),c=>c.charCodeAt(0))};
+const bytesToB64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+
+function reminderAt(t,hhmm){
+  const [h,m]=(hhmm||"09:00").split(":").map(Number);
+  const d=parse(t.due);d.setHours(h,m,0,0);
+  if(t.time){const [th,tm]=t.time.split(":").map(Number);const e=parse(t.due);e.setHours(th,tm-60,0,0);if(e<d)d.setTime(e.getTime())}
+  return d;
+}
+
+let mirrorTimer=null;
+function scheduleMirror(){clearTimeout(mirrorTimer);mirrorTimer=setTimeout(writeMirror,400)}
+async function writeMirror(){
+  if(!uidCur)return;
+  const T=todayStr(),until=ymd(addDays(new Date(),60)),days={};
+  for(const t of tasks()){if(t.done||!t.due||t.due<T||t.due>until)continue;(days[t.due]=days[t.due]||[]).push({title:t.title,time:t.time||""})}
+  for(const k in days)days[k].sort((a,b)=>(a.time||"99").localeCompare(b.time||"99"));
+  try{await idbStore("mirror","readwrite",s=>s.put({updated:Date.now(),days},"deadlines"))}catch(e){}
+}
+
+let remBusy=false,remAgain=false;
+async function syncReminders(){
+  if(!sb||!uidCur||!navigator.onLine)return;
+  const st=settingsItem();if(!st.notify||!st.notify.enabled)return;
+  if(remBusy){remAgain=true;return}
+  remBusy=true;
+  try{
+    const now=Date.now(),want={};
+    for(const t of tasks()){
+      if(t.done||!t.due)continue;
+      const at=reminderAt(t,st.notify.time).getTime();
+      if(at>now-60000&&at<now+400*864e5)want[t.id]=new Date(at).toISOString();
+    }
+    const {data,error}=await sb.from("reminders").select("item_id,remind_at");
+    if(error)throw error;
+    const have={};(data||[]).forEach(r=>{have[r.item_id]=r.remind_at});
+    const up=[];
+    for(const [id,at] of Object.entries(want))if(!have[id]||new Date(have[id]).getTime()!==new Date(at).getTime())up.push({user_id:uidCur,item_id:id,remind_at:at,sent:false});
+    const del=Object.keys(have).filter(id=>!want[id]);
+    if(up.length){const r=await sb.from("reminders").upsert(up,{onConflict:"user_id,item_id"});if(r.error)throw r.error}
+    for(let i=0;i<del.length;i+=100){const r=await sb.from("reminders").delete().in("item_id",del.slice(i,i+100));if(r.error)throw r.error}
+  }catch(e){console.warn("reminders",e)}
+  finally{remBusy=false;if(remAgain){remAgain=false;setTimeout(syncReminders,300)}}
+}
+
+async function currentSub(){
+  if(!pushSupported)return null;
+  try{const reg=await navigator.serviceWorker.getRegistration();return reg?await reg.pushManager.getSubscription():null}catch(e){return null}
+}
+function nSay(t){$("nState").textContent=t}
+async function renderNotify(){
+  const c=$("nControls");
+  if(!VAPID){c.hidden=true;nSay("Напоминания ещё не настроены. Инструкция в README-push.md.");return}
+  if(!uidCur){c.hidden=true;nSay("Войдите в аккаунт, чтобы включить напоминания.");return}
+  if(!pushSupported){
+    c.hidden=true;
+    nSay(isIOS&&!standalone?"На iPhone напоминания работают только в приложении со значка на главном экране (iOS 16.4 или новее). Откройте Задачник оттуда.":"Этот браузер не поддерживает уведомления. Откройте приложение в Chrome, Edge или Safari.");
+    return;
+  }
+  c.hidden=false;
+  const st=settingsItem();
+  if(document.activeElement!==$("nTime"))$("nTime").value=(st.notify&&st.notify.time)||"09:00";
+  const sub=await currentSub();
+  const on=!!sub&&Notification.permission==="granted";
+  $("nOn").hidden=on;$("nOff").hidden=!on;$("nTest").hidden=!on;
+  if(Notification.permission==="denied")nSay("Уведомления запрещены для этого приложения. Разрешите их в настройках телефона или браузера и нажмите «Включить» ещё раз.");
+  else if(on)nSay(`Включено на этом устройстве. Напомню в день дедлайна в ${$("nTime").value}, а если у задачи указано время, то за час до него.`);
+  else nSay(st.notify&&st.notify.enabled?"На других устройствах напоминания включены. Включите и здесь, если хотите получать их на это устройство.":"Получайте уведомление утром в день дедлайна, даже если приложение закрыто.");
+}
+$("nOn").addEventListener("click",async()=>{
+  const btn=$("nOn");btn.disabled=true;
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){nSay(perm==="denied"?"Вы запретили уведомления. Их можно разрешить в настройках телефона или браузера.":"Нужно разрешить уведомления, чтобы получать напоминания.");return}
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    const key=b64uToBytes(VAPID);
+    if(sub&&sub.options&&sub.options.applicationServerKey&&bytesToB64u(sub.options.applicationServerKey)!==bytesToB64u(key)){await sub.unsubscribe();sub=null}
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
+    const r=await sb.from("push_subs").upsert({endpoint:sub.endpoint,user_id:uidCur},{onConflict:"endpoint"});
+    if(r.error)throw r.error;
+    const st=settingsItem();
+    await put(Object.assign({},st,{notify:{enabled:true,time:$("nTime").value||"09:00"}}));
+    await writeMirror();
+  }catch(e){console.warn(e);nSay("Не получилось включить: "+(e&&e.message?e.message:"ошибка")+". Проверьте интернет и попробуйте ещё раз.");return}
+  finally{btn.disabled=false}
+  renderNotify();
+});
+async function unsubscribeHere(){
+  const sub=await currentSub();
+  if(sub){try{if(sb)await sb.from("push_subs").delete().eq("endpoint",sub.endpoint)}catch(e){}try{await sub.unsubscribe()}catch(e){}}
+}
+$("nOff").addEventListener("click",async()=>{await unsubscribeHere();renderNotify()});
+$("nTime").addEventListener("change",async()=>{
+  const st=settingsItem();const time=$("nTime").value||"09:00";
+  if(st.notify&&st.notify.time===time)return;
+  await put(Object.assign({},st,{notify:{enabled:!!(st.notify&&st.notify.enabled),time}}));
+  renderNotify();
+});
+$("nTest").addEventListener("click",async()=>{
+  try{const reg=await navigator.serviceWorker.ready;
+    await reg.showNotification("Задачник",{body:"Так будет выглядеть напоминание о дедлайне.",icon:"icon-192.png",badge:"icon-192.png",tag:"test"});
+  }catch(e){nSay("Не удалось показать уведомление: "+(e.message||e))}
+});
+
+function onSynced(){syncReminders();scheduleMirror()}
+async function onSignOut(){
+  await unsubscribeHere();
+  try{await idbStore("mirror","readwrite",s=>s.clear())}catch(e){}
+}
+let notifyRenderPending=false;
+function renderExtras(){
+  renderMascot();scheduleMirror();
+  if(!notifyRenderPending){notifyRenderPending=true;setTimeout(()=>{notifyRenderPending=false;renderNotify()},50)}
+}
+loadMascot();
+
+/* ---------- Start ---------- */
+const now=new Date();viewY=now.getFullYear();viewM=now.getMonth();
+$("tDate").value=todayStr();$("lDate").value=todayStr();
+render();
+setSync("","Подключение…");
+bootStorage();
+// Refresh "today" after midnight
+setInterval(()=>{const T=todayStr();if(T!==render._d){render._d=T;render()}},60000);render._d=todayStr();
+})();
+</script>
+
+<script>
+if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
