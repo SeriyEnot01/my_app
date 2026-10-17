@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'add_task.dart';
 import 'all_tasks.dart';
 import 'backup.dart';
+import 'bills.dart';
 import 'calendar.dart';
+import 'expenses.dart';
 import 'mascot.dart';
 import 'notes.dart';
 import 'reminders.dart';
@@ -122,6 +124,20 @@ final List<AppModule> allModules = [
     description: 'Быстрые заметки без даты, как «Избранное» в Telegram',
     icon: Icons.sticky_note_2_outlined,
     builder: () => NotesModule(),
+  ),
+  AppModule(
+    id: 'bills',
+    title: 'Регулярные платежи',
+    description: 'Подписки, аренда, связь, зарплата: сумма и число месяца, отметка «оплачено»',
+    icon: Icons.event_repeat_outlined,
+    builder: () => BillsModule(),
+  ),
+  AppModule(
+    id: 'expenses',
+    title: 'Расходы и доходы',
+    description: 'Все траты и поступления по месяцам: итоги, категории, список',
+    icon: Icons.account_balance_wallet_outlined,
+    builder: () => ExpensesModule(),
   ),
   AppModule(
     id: 'mascot',

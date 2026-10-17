@@ -87,15 +87,30 @@ class AppStore extends ChangeNotifier {
 
   Future<void> setUserName(String name) {
     final clean = name.trim();
+    return setProfile('name', clean.length > 40 ? clean.substring(0, 40) : clean);
+  }
+
+  /// Small synced preferences (name, currency, ...) kept in the one 'profile' record.
+  Future<void> setProfile(String key, Object? value) {
     final old = items['profile'];
     return put({
       ...?old,
       'id': 'profile',
       'kind': 'profile',
-      'name': clean.length > 40 ? clean.substring(0, 40) : clean,
+      key: value,
       'created': old?['created'] ?? DateTime.now().millisecondsSinceEpoch,
     });
   }
+
+  /// Regular payments and incomes (see core/money.dart).
+  List<Item> get bills => _ofKind('bill');
+
+  /// Income and expense entries (see core/money.dart), newest first.
+  List<Item> get txns => _ofKind('txn')
+    ..sort((a, b) {
+      final d = str(b, 'date').compareTo(str(a, 'date'));
+      return d != 0 ? d : _n(b, 'created').compareTo(_n(a, 'created'));
+    });
 
   /// Timetable entries (see core/schedule.dart).
   List<Item> get events => _ofKind('event');

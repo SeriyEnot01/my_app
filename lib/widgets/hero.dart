@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/dates.dart';
 import '../core/models.dart';
+import '../core/money.dart';
 import '../core/schedule.dart';
 import '../core/scope.dart';
 import '../core/theme.dart';
@@ -56,6 +57,15 @@ class _HeroHeaderState extends State<HeroHeader> {
         ? store.logs.where((l) => str(l, 'date').compareTo(weekAgo) >= 0 && str(l, 'date').compareTo(today) <= 0).length
         : -1;
     final next = layout.isOnId('schedule') ? currentOrNext(store.events) : null;
+    ({Item bill, DateTime date, bool overdue})? bill;
+    if (layout.isOnId('bills')) {
+      for (final b in store.bills) {
+        if (isIncome(b)) continue;
+        final n = billNext(b, now);
+        if (!n.overdue && n.date.difference(DateTime(now.year, now.month, now.day)).inDays > 3) continue;
+        if (bill == null || n.date.isBefore(bill.date)) bill = (bill: b, date: n.date, overdue: n.overdue);
+      }
+    }
     final h = now.hour;
     final hi = h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
     final hello = store.userName.isEmpty ? hi : '$hi, ${store.userName}';
@@ -75,6 +85,12 @@ class _HeroHeaderState extends State<HeroHeader> {
               ? 'Сейчас: ${str(next.event, 'title')} до ${str(next.event, 'end')}'
               : 'Далее: ${str(next.event, 'title')} в ${str(next.event, 'start')}',
           eventColor(next.event),
+        ),
+      if (bill != null)
+        _Chip(
+          Icons.payments_outlined,
+          '${bill.overdue ? 'Не оплачено' : 'Платёж ${rel(ymd(bill.date))}'}: ${str(bill.bill, 'title')}, ${money(amountOf(bill.bill), currencyOf(store))}',
+          bill.overdue ? C.overdue : C.sun,
         ),
       if (overdue > 0) _Chip(Icons.error_outline, 'Просрочено: $overdue', C.overdue),
       if (soon > 0) _Chip(Icons.upcoming_outlined, 'В ближайшие 3 дня: $soon', C.accent),
